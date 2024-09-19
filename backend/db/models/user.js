@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				unique: true,
 				validate: {
+					// len: [4, 30],
 					len: {
 						args: [4, 30],
 						msg: 'String length must be between 4 and 30 characters',
@@ -38,15 +39,18 @@ module.exports = (sequelize, DataTypes) => {
 						args: [3, 256],
 						msg: 'String length much be between 3 and 256 characters',
 					},
+					// len: [3, 256],
 					isEmail: true,
 				},
 			},
 			hashedPassword: {
-				type: DataTypes.STRING,
+				type: DataTypes.STRING.BINARY,
 				allowNull: false,
 				validate: {
-					args: [60, 60],
-					msg: 'String must be 60 characters',
+					len: {
+						args: [60, 60],
+						msg: 'String must be 60 characters',
+					},
 				},
 			},
 		},
