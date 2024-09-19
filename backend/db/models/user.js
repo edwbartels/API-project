@@ -13,6 +13,25 @@ module.exports = (sequelize, DataTypes) => {
 	}
 	User.init(
 		{
+			firstName: {
+				type: DataTypes.STRING,
+			},
+			lastName: {
+				type: DataTypes.STRING,
+			},
+			email: {
+				type: DataTypes.STRING,
+				allowNull: false,
+				unique: true,
+				validate: {
+					len: {
+						args: [3, 256],
+						msg: 'String length much be between 3 and 256 characters',
+					},
+					// len: [3, 256],
+					isEmail: true,
+				},
+			},
 			username: {
 				type: DataTypes.STRING,
 				allowNull: false,
@@ -28,19 +47,6 @@ module.exports = (sequelize, DataTypes) => {
 							throw new Error('Cannot be an email.');
 						}
 					},
-				},
-			},
-			email: {
-				type: DataTypes.STRING,
-				allowNull: false,
-				unique: true,
-				validate: {
-					len: {
-						args: [3, 256],
-						msg: 'String length much be between 3 and 256 characters',
-					},
-					// len: [3, 256],
-					isEmail: true,
 				},
 			},
 			hashedPassword: {
