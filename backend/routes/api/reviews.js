@@ -41,4 +41,44 @@ router.get('/current', requireAuth, async (req, res, next) => {
 	res.status(200).json(reviews);
 });
 
+// POST add image to review by reviewId
+
+router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const { url } = req.body;
+	const review = await Review.findByPk(req.params.reviewId);
+	const img = await ReviewImage.create({
+		reviewId: review.id,
+		url: url,
+	});
+	const respo = ReviewImages.findByPk(img.id, {
+		attributes: ['id', 'url'],
+	});
+	res.status(201).json(response);
+});
+
+// PUT edit a review by reviewId
+
+router.put('/:reviewId', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const { rev, stars } = req.body;
+	const review = await Review.findByPk(req.params.reviewId);
+	await review.update({
+		review: rev,
+		stars: stars,
+	});
+	res.status(200).json(review);
+});
+
+// DELETE a review by id
+
+router.delete('/:reviewId', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const review = await Review.findByPk(req.params.reviewId);
+	await review.destroy;
+	res.status(200).json({
+		message: 'Successfully deleted',
+	});
+});
+
 module.exports = router;

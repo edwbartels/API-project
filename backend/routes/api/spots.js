@@ -155,4 +155,17 @@ router.get('/:spotId/reviews', async (req, res, next) => {
 	});
 	res.status(200).json(reviews);
 });
+
+//POST create review by spotId
+router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const { review, stars } = req.body;
+	const newReview = await Review.create({
+		userId: user.id,
+		spotId: req.params.spotId,
+		review: review,
+		stars: stars,
+	});
+	res.status(201).json(newReview);
+});
 module.exports = router;
