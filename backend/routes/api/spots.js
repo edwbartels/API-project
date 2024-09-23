@@ -168,4 +168,31 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 	});
 	res.status(201).json(newReview);
 });
+
+// GET all bookings by spotId
+
+router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const bookings = await Booking.findAll({
+		where: {
+			spotId: req.params.spotId,
+		},
+		attributes: ['spotId', 'startDate', 'endDate'],
+	});
+	res.status(200).json(bookings);
+});
+
+// POST create booking by spotId
+
+router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const { startDate, endDate } = req.body;
+	const booking = await Booking.create({
+		spotId: req.params.spotId,
+		userId: user.id,
+		startDate: startDate,
+		endDate: endDate,
+	});
+	res.status(201).json(booking);
+});
 module.exports = router;
