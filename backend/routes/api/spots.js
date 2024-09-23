@@ -86,6 +86,8 @@ router.get('/:spotId', async (req, res, next) => {
 	res.status(200).json(spot);
 });
 
+// POST create a spot
+
 router.post('/', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	console.log(user);
@@ -106,4 +108,51 @@ router.post('/', requireAuth, async (req, res, next) => {
 	res.status(201).json(spot);
 });
 
+// POST add image to spot by spotId
+
+router.post('/:spotId/images', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	console.log(user);
+	const { url, preview } = req.body;
+	const img = await SpotImage.create({
+		spotId: req.params.spotId,
+		url: url,
+		preview: preview,
+	});
+	res.status(201).json(img);
+});
+
+// PUT edit a spot
+
+router.put('/:spotId', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	console.log(user);
+	const { address, city, state, country, lat, lng, name, description, price } =
+		req.body;
+	const spot = await Spot.findByPk(req.params.spotId);
+	await spot.update({
+		address: address,
+		city: city,
+		state: state,
+		country: country,
+		lat: lat,
+		lng: lng,
+		name: name,
+		description: description,
+		price: price,
+	});
+	res.status(200).json(spot);
+});
+
+// DELETE a spot
+
+router.delete('/:spotId', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	console.log(user);
+	const spot = await Spot.findByPk(req.params.spotId);
+	await spot.destroy();
+	res.status(200).json({
+		message: 'Successfully deleted',
+	});
+});
 module.exports = router;
