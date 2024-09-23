@@ -9,29 +9,8 @@ const { requireAuth } = require('../../utils/auth');
 router.get('/', async (req, res, next) => {
 	let spots = [];
 	let avgRating;
-	spots = await Spot.findAll({
-		// include: [
-		// 	{
-		// 		model: Review,
-		// 		attributes: ['stars'],
-		// 		// through: {
-		// 		// 	attributes: [],
-		// 		// },
-		// 	},
-		// 	{
-		// 		model: SpotImage,
-		// 		attributes: ['url', 'preview'],
-		// 		// where: {
-		// 		// 	preview: true,
-		// 		// },
-		// 	},
-		// ],
-	});
+	spots = await Spot.findAll();
 	spots.forEach((el) => {
-		// if (el.Reviews.length) {
-		// 	let avg = el.Reviews.reduce((acc, cur) => acc + cur) / el.Reviews.length;
-		// 	el.avgRating = sum;
-		// }
 		const { avg } = Review.findOne({
 			where: {
 				spotId: el.id,
