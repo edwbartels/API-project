@@ -8,7 +8,6 @@ const { requireAuth } = require('../../utils/auth');
 // GET all spots
 router.get('/', async (req, res, next) => {
 	let spots = [];
-	let avgRating;
 	spots = await Spot.findAll();
 	spots.forEach((el) => {
 		const { avg } = Review.findOne({
