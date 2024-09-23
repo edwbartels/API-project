@@ -40,4 +40,5 @@ router.get('/current', requireAuth, async (req, res, next) => {
 	});
 	res.status(200).json(reviews);
 });
+
 module.exports = router;

@@ -134,4 +134,25 @@ router.delete('/:spotId', requireAuth, async (req, res, next) => {
 		message: 'Successfully deleted',
 	});
 });
+
+// GET reviews by spotId
+
+router.get('/:spotId/reviews', async (req, res, next) => {
+	const reviews = await Review.findAll({
+		where: {
+			spotId: req.params.spotId,
+		},
+		include: [
+			{
+				model: 'Users',
+				attributes: ['id', 'firstName', 'lastName'],
+			},
+			{
+				model: 'ReviewImages',
+				attributes: ['id', 'url'],
+			},
+		],
+	});
+	res.status(200).json(reviews);
+});
 module.exports = router;
