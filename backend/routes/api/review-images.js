@@ -5,4 +5,15 @@ const { Spot, Review, Booking, SpotImage } = require('../../db/models');
 const { Op, fn, col } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
 
+// DELETE a review image by imageId
+
+router.delete('/:imageId', requireAuth, async (req, res, next) => {
+	const { user } = req;
+	const img = await ReviewImage.findByPk(req.params.imageId);
+	await img.destroy();
+	res.status(200).json({
+		message: 'Successfully deleted',
+	});
+});
+
 module.exports = router;
