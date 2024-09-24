@@ -52,15 +52,28 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 			attributes: [[fn('COUNT', col('url')), 'imageCount']],
 		},
 	});
+	// if (!review) {
+	// 	return res.status(404).json({
+	// 		message: `Review couldn't be found`,
+	// 	});
+	// }
 	if (!review) {
-		return res.status(404).json({
-			message: `Review couldn't be found`,
-		});
+		const err = new Error(`Review couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (review.userId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
+		next(err);
 	}
 	if (review.imageCount >= 10) {
-		return res.status(403).json({
-			message: 'Maximum number of iamges for this resource was reached',
-		});
+		const err = new Error(
+			`Maximum number of images for this resource was reached`,
+			{ status: 403 }
+		);
+		next(err);
+		// return res.status(403).json({
+		// 	message: 'Maximum number of iamges for this resource was reached',
+		// });
 	}
 	const img = await ReviewImage.create({
 		reviewId: review.id,
@@ -79,10 +92,14 @@ router.put('/:reviewId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { rev, stars } = req.body;
 	const review = await Review.findByPk(req.params.reviewId);
+	// if (!review) {
+	// 	return res.status(404).json({
+	// 		message: `Review couldn't be found`,
+	// 	});
+	// }
 	if (!review) {
-		return res.status(404).json({
-			message: `Review couldn't be found`,
-		});
+		const err = new Error(`Review couldn't be found`, { status: 404 });
+		next(err);
 	}
 	try {
 		await review.update({
@@ -91,18 +108,19 @@ router.put('/:reviewId', requireAuth, async (req, res, next) => {
 		});
 		res.status(200).json(review);
 	} catch (error) {
-		console.error(error);
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-				errors,
-			});
-		}
-		return res.status(500).json({ message: 'Internal Server Error' });
+		next(error);
+		// console.error(error);
+		// if (error instanceof ValidationError) {
+		// 	const errors = {};
+		// 	error.errors.forEach((err) => {
+		// 		errors[err.path] = err.message;
+		// 	});
+		// 	return res.status(400).json({
+		// 		message: 'Bad Request',
+		// 		errors,
+		// 	});
+		// }
+		// return res.status(500).json({ message: 'Internal Server Error' });
 	}
 });
 
@@ -111,12 +129,16 @@ router.put('/:reviewId', requireAuth, async (req, res, next) => {
 router.delete('/:reviewId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const review = await Review.findByPk(req.params.reviewId);
+	// if (!review) {
+	// 	res.status(404).json({
+	// 		message: `Review couldn't be found`,
+	// 	});
+	// }
 	if (!review) {
-		res.status(404).json({
-			message: `Review couldn't be found`,
-		});
+		const err = new Error(`Review couldn't be found`, { status: 404 });
+		next(err);
 	}
-	await review.destroy;
+	await review.destroy();
 	res.status(200).json({
 		message: 'Successfully deleted',
 	});

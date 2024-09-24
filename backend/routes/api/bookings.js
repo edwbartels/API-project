@@ -21,10 +21,14 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
 	const booking = await Booking.findByPk(req.params.bookingId);
+	// if (!booking) {
+	// 	return res.status(404).json({
+	// 		message: `Booking couldn't be found`,
+	// 	});
+	// }
 	if (!booking) {
-		return res.status(404).json({
-			message: `Booking couldn't be found`,
-		});
+		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		next(err);
 	}
 	try {
 		await booking.update({
@@ -33,20 +37,21 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 		});
 		res.status(200).json(booking);
 	} catch (error) {
-		console.error(error);
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-				errors,
-			});
-		}
-		return res.status(500).json({
-			message: ' Internal Server Error',
-		});
+		next(error);
+		// console.error(error);
+		// if (error instanceof ValidationError) {
+		// 	const errors = {};
+		// 	error.errors.forEach((err) => {
+		// 		errors[err.path] = err.message;
+		// 	});
+		// 	return res.status(400).json({
+		// 		message: 'Bad Request',
+		// 		errors,
+		// 	});
+		// }
+		// return res.status(500).json({
+		// 	message: ' Internal Server Error',
+		// });
 	}
 });
 
@@ -55,10 +60,14 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 router.delete('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const booking = await Booking.findByPk(req.params.bookingId);
+	// if (!booking) {
+	// 	return res.status(404).json({
+	// 		message: `Booking couldn't be found`,
+	// 	});
+	// }
 	if (!booking) {
-		return res.status(404).json({
-			message: `Booking couldn't be found`,
-		});
+		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		next(err);
 	}
 	await booking.destroy();
 	res.status(200).json({

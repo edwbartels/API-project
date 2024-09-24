@@ -1,7 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const { Spot, Review, Booking, SpotImage } = require('../../db/models');
+const {
+	Spot,
+	Review,
+	Booking,
+	SpotImage,
+	ReviewImage,
+} = require('../../db/models');
 const { Op, fn, col } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
 
@@ -10,10 +16,14 @@ const { requireAuth } = require('../../utils/auth');
 router.delete('/:imageId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const img = await ReviewImage.findByPk(req.params.imageId);
+	// if (!img) {
+	// 	return res.status(404).json({
+	// 		message: `Review Image couldn't be found`,
+	// 	});
+	// }
 	if (!img) {
-		return res.status(404).json({
-			message: `Review Image couldn't be found`,
-		});
+		const err = new Error(`Review Image couldn't be found`, { status: 404 });
+		next(err);
 	}
 	await img.destroy();
 	res.status(200).json({

@@ -66,15 +66,12 @@ router.get('/:spotId', async (req, res, next) => {
 			},
 		],
 	});
-	if (spot) {
-		res.status(200).json(spot);
+
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
 	}
-	// Error Handling for undefined spot
-	else {
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
-	}
+	res.status(200).json(spot);
 });
 
 // POST create a spot
@@ -99,18 +96,7 @@ router.post('/', requireAuth, async (req, res, next) => {
 		});
 		res.status(201).json(spot);
 	} catch (error) {
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-			});
-		}
-
-		console.error(error);
-		return res.status(500).json({ message: 'Internal Server Error' });
+		next(error);
 	}
 });
 
@@ -119,6 +105,15 @@ router.post('/', requireAuth, async (req, res, next) => {
 router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	console.log(user);
+	const spot = await Spot.findByPk(req.params.spotId);
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (spot.ownerId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
+		next(err);
+	}
 	const { url, preview } = req.body;
 	try {
 		const img = await SpotImage.create({
@@ -129,15 +124,13 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 		res.status(201).json(img);
 	} catch (error) {
 		if (error.name === 'SequelizeForeignKeyConstraintError') {
-			return res.status(404).json({
-				message: `Spot couldn't be found`,
-			});
+			// return res.status(404).json({
+			// 	message: `Spot couldn't be found`,
+			// });
+			error.status = 404;
+			error.message = `Spot couldn't be found`;
 		}
-
-		console.error(error);
-		return res.status(500).json({
-			message: 'Internal Server Error',
-		});
+		next(error);
 	}
 });
 
@@ -149,10 +142,15 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 	const { address, city, state, country, lat, lng, name, description, price } =
 		req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
-	if (!spot)
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (spot.ownerId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
+		next(err);
+	}
 	try {
 		await spot.update({
 			address: address,
@@ -167,18 +165,17 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 		});
 		res.status(200).json(spot);
 	} catch (error) {
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-				errors,
-			});
-		}
-		console.error(error);
-		return res.status(500).json({ message: `Internal Server Error` });
+		next(error);
+		// if (error instanceof ValidationError) {
+		// 	const errors = {};
+		// 	error.errors.forEach((err) => {
+		// 		errors[err.path] = err.message;
+		// 	});
+		// 	return res.status(400).json({
+		// 		message: 'Bad Request',
+		// 		errors,
+		// 	});
+		// }
 	}
 });
 
@@ -188,10 +185,18 @@ router.delete('/:spotId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	console.log(user);
 	const spot = await Spot.findByPk(req.params.spotId);
-	if (!spot)
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+	// if (!spot)
+	// 	return res.status(404).json({
+	// 		message: `Spot couldn't be found`,
+	// 	});
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (spot.ownerId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
+		next(err);
+	}
 	await spot.destroy();
 	res.status(200).json({
 		message: 'Successfully deleted',
@@ -216,26 +221,34 @@ router.get('/:spotId/reviews', async (req, res, next) => {
 			},
 		],
 	});
+	// if (!reviews) {
+	// 	return res.status(404).json({
+	// 		message: `Spot couldn't be found`,
+	// 	});
+	// }
 	if (!reviews) {
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
 	}
 	res.status(200).json(reviews);
 });
 
 //POST create review by spotId
+
 router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { review, stars } = req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
 
+	// if (!spot) {
+	// 	return res.status(404).json({
+	// 		message: `Spot couldn't be found`,
+	// 	});
+	// }
 	if (!spot) {
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
 	}
-
 	try {
 		const newReview = await Review.create({
 			userId: user.id,
@@ -245,25 +258,24 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 		});
 		res.status(201).json(newReview);
 	} catch (error) {
-		console.error(error);
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-				errors,
-			});
-		}
+		// if (error instanceof ValidationError) {
+		// 	const errors = {};
+		// 	error.errors.forEach((err) => {
+		// 		errors[err.path] = err.message;
+		// 	});
+		// 	return res.status(400).json({
+		// 		message: 'Bad Request',
+		// 		errors,
+		// 	});
+		// }
 		if (error instanceof UniqueConstraintError) {
-			return res.status(500).json({
-				message: 'User already has a review for this spot',
-			});
+			// return res.status(500).json({
+			// 	message: 'User already has a review for this spot',
+			// });
+			error.status = 500;
+			error.message = `User already has a review for this spot`;
 		}
-		return res.status(500).json({
-			message: 'Internal Server Error',
-		});
+		next(error);
 	}
 });
 
@@ -278,10 +290,14 @@ router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 			attributes: ['spotId', 'startDate', 'endDate'],
 		},
 	});
+	// if (!spotBookings) {
+	// 	res.status(404).json({
+	// 		message: `Spot couldn't be found`,
+	// 	});
+	// }
 	if (!spotBookings) {
-		res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
 	}
 	// const bookings = await Booking.findAll({
 	// 	where: {
@@ -298,10 +314,14 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
 	const spot = await Spot.findByPk(re.params.spotId);
+	// if (!spot) {
+	// 	return res.status(404).json({
+	// 		message: `Spot couldn't be found`,
+	// 	});
+	// }
 	if (!spot) {
-		return res.status(404).json({
-			message: `Spot couldn't be found`,
-		});
+		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
 	}
 	try {
 		const booking = await Booking.create({
@@ -312,18 +332,19 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 		});
 		res.status(201).json(booking);
 	} catch (error) {
-		console.error(error);
-		if (error instanceof ValidationError) {
-			const errors = {};
-			error.errors.forEach((err) => {
-				errors[err.path] = err.message;
-			});
-			return res.status(400).json({
-				message: 'Bad Request',
-				errors,
-			});
-		}
-		return res.status(500).json({ message: 'Internal Server Error' });
+		next(error);
+		// console.error(error);
+		// if (error instanceof ValidationError) {
+		// 	const errors = {};
+		// 	error.errors.forEach((err) => {
+		// 		errors[err.path] = err.message;
+		// 	});
+		// 	return res.status(400).json({
+		// 		message: 'Bad Request',
+		// 		errors,
+		// 	});
+		// }
+		// return res.status(500).json({ message: 'Internal Server Error' });
 	}
 });
 module.exports = router;
