@@ -271,13 +271,25 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 
 router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	const bookings = await Booking.findAll({
-		where: {
-			spotId: req.params.spotId,
+	const spotBookings = await Spot.findByPk(req.params.spotId, {
+		attributes: [],
+		include: {
+			model: Booking,
+			attributes: ['spotId', 'startDate', 'endDate'],
 		},
-		attributes: ['spotId', 'startDate', 'endDate'],
 	});
-	res.status(200).json(bookings);
+	if (!spotBookings) {
+		res.status(404).json({
+			message: `Spot couldn't be found`,
+		});
+	}
+	// const bookings = await Booking.findAll({
+	// 	where: {
+	// 		spotId: req.params.spotId,
+	// 	},
+	// 	attributes: ['spotId', 'startDate', 'endDate'],
+	// });
+	res.status(200).json(spotBookings);
 });
 
 // POST create booking by spotId
@@ -285,12 +297,33 @@ router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
-	const booking = await Booking.create({
-		spotId: req.params.spotId,
-		userId: user.id,
-		startDate: startDate,
-		endDate: endDate,
-	});
-	res.status(201).json(booking);
+	const spot = await Spot.findByPk(re.params.spotId);
+	if (!spot) {
+		return res.status(404).json({
+			message: `Spot couldn't be found`,
+		});
+	}
+	try {
+		const booking = await Booking.create({
+			spotId: req.params.spotId,
+			userId: user.id,
+			startDate: startDate,
+			endDate: endDate,
+		});
+		res.status(201).json(booking);
+	} catch (error) {
+		console.error(error);
+		if (error instanceof ValidationError) {
+			const errors = {};
+			error.errors.forEach((err) => {
+				errors[err.path] = err.message;
+			});
+			return res.status(400).json({
+				message: 'Bad Request',
+				errors,
+			});
+		}
+		return res.status(500).json({ message: 'Internal Server Error' });
+	}
 });
 module.exports = router;

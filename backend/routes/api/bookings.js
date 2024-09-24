@@ -21,11 +21,33 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
 	const booking = await Booking.findByPk(req.params.bookingId);
-	await booking.update({
-		startDate: startDate,
-		endDate: endDate,
-	});
-	res.status(200).json(booking);
+	if (!booking) {
+		return res.status(404).json({
+			message: `Booking couldn't be found`,
+		});
+	}
+	try {
+		await booking.update({
+			startDate: startDate,
+			endDate: endDate,
+		});
+		res.status(200).json(booking);
+	} catch (error) {
+		console.error(error);
+		if (error instanceof ValidationError) {
+			const errors = {};
+			error.errors.forEach((err) => {
+				errors[err.path] = err.message;
+			});
+			return res.status(400).json({
+				message: 'Bad Request',
+				errors,
+			});
+		}
+		return res.status(500).json({
+			message: ' Internal Server Error',
+		});
+	}
 });
 
 // DELETE a booking by bookingId
@@ -33,6 +55,11 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 router.delete('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const booking = await Booking.findByPk(req.params.bookingId);
+	if (!booking) {
+		return res.status(404).json({
+			message: `Booking couldn't be found`,
+		});
+	}
 	await booking.destroy();
 	res.status(200).json({
 		message: 'Successfully deleted',
