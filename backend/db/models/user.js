@@ -10,14 +10,41 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      User.hasMany(models.Booking, { foreignKey: 'userId' });
+      User.hasMany(models.Review, { foreignKey: 'userId' });
+    }
+
+    static async hashPassword(password) {
+      return await bcrypt.hash(password, 10);
+    }
+
+    async validatePassword(password) {
+      return await bcrypt.hash(password, 10);
+    }
+
+    async validatePassword(password) {
+      return await bcrypt.compare(password, this.hashedPassword);
     }
   }
+
   User.init({
-    username: DataTypes.STRING,
-    email: DataTypes.STRING,
-    hashedPassword: DataTypes.STRING
-  }, {
+    username: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
+    },
+    hashedPassword: {
+      type: DataTypes.STRING,
+      allowNull: false,
+  }, 
     sequelize,
     modelName: 'User',
   });
