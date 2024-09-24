@@ -47,6 +47,10 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { url } = req.body;
 	const review = await Review.findByPk(req.params.reviewId);
+	if (!review)
+		return res.status(404).json({
+			message: `Review couldn't be found`,
+		});
 	const img = await ReviewImage.create({
 		reviewId: review.id,
 		url: url,
@@ -54,7 +58,7 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 	const respo = ReviewImages.findByPk(img.id, {
 		attributes: ['id', 'url'],
 	});
-	res.status(201).json(response);
+	res.status(201).json(respo);
 });
 
 // PUT edit a review by reviewId
