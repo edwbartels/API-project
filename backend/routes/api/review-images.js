@@ -27,12 +27,14 @@ router.delete('/:imageId', requireAuth, async (req, res, next) => {
 	// 	});
 	// }
 	if (!img) {
-		const err = new Error(`Review Image couldn't be found`, { status: 404 });
-		next(err);
+		const err = new Error(`Review Image couldn't be found`);
+		err.status = 404;
+		return next(err);
 	}
 	if (img.Review.userId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		const err = new Error('Forbidden');
+		err.status = 403;
+		return next(err);
 	}
 	await img.destroy();
 	res.status(200).json({

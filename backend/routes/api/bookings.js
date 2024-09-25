@@ -10,10 +10,42 @@ const { requireAuth } = require('../../utils/auth');
 router.get('/current', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const bookings = await Booking.findAll({
-		where: { ownerId: user.id },
-		include: { model: Spot },
+		where: { userId: user.id },
+		include: {
+			model: Spot,
+			include: {
+				model: SpotImage,
+				where: {
+					preview: true,
+				},
+			},
+		},
 	});
-	res.status(200).json(bookings);
+	const formattedBookings = bookings.map((booking) => {
+		return {
+			id: booking.id,
+			spotId: booking.spotId,
+			Spot: {
+				id: booking.Spot.id,
+				ownerId: booking.Spot.ownerId,
+				address: booking.Spot.address,
+				city: booking.Spot.city,
+				state: booking.Spot.state,
+				country: booking.Spot.country,
+				lat: booking.Spot.lat,
+				lng: booking.Spot.lng,
+				name: booking.Spot.name,
+				price: booking.Spot.price,
+				previewImage: booking.Spot.SpotImages[0].url,
+			},
+			userId: booking.userId,
+			startDate: booking.startDate,
+			endDate: booking.endDate,
+			createdAt: booking.createdAt,
+			updatedAt: booking.updatedAt,
+		};
+	});
+	res.status(200).json({ Bookings: formattedBookings });
 });
 
 // PUT edit booking by bookingId
@@ -55,17 +87,18 @@ router.delete('/:bookingId', requireAuth, async (req, res, next) => {
 	});
 
 	if (!booking) {
-		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		const err = new Error(`Booking couldn't be found`);
+		err.status = 404;
 		return next(err);
 	}
 	if (booking.userId != user.id && booking.Spot.ownerId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
+		const err = new Error('Forbidden');
+		err.status = 403;
 		return next(err);
 	}
 	if (new Date(booking.startDate).getTime() < Date.now()) {
-		const err = new Error(`Bookings that have been started can't be deleted`, {
-			status: 403,
-		});
+		const err = new Error(`Bookings that have been started can't be deleted`);
+		err.status = 403;
 		return next(err);
 	}
 	await booking.destroy();

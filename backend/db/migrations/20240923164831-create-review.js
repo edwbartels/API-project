@@ -12,17 +12,18 @@ module.exports = {
 			spotId: {
 				type: Sequelize.INTEGER,
 				allowNull: false,
-				references: { model: 'Spots' },
+				references: { model: 'Spots', key: 'id' },
 				onDelete: 'Cascade',
 			},
 			userId: {
 				type: Sequelize.INTEGER,
 				allowNull: false,
-				refereneces: { model: 'Users' },
+				refereneces: { model: 'Users', key: 'id' },
 				onDelete: 'Cascade',
 			},
 			review: {
 				type: Sequelize.STRING,
+				allowNull: false,
 			},
 			stars: {
 				type: Sequelize.INTEGER,
@@ -38,6 +39,12 @@ module.exports = {
 				type: Sequelize.DATE,
 				defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
 			},
+		});
+
+		await queryInterface.addConstraint('Reviews', {
+			fields: ['userId', 'spotId'],
+			type: 'unique',
+			name: 'unique_user_spot',
 		});
 	},
 	async down(queryInterface, Sequelize) {

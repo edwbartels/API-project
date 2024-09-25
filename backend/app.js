@@ -60,7 +60,13 @@ app.use((_req, _res, next) => {
 // Process sequelize errors
 app.use((err, _req, _res, next) => {
 	// check if error is a Sequelize error:
-	if (err instanceof ValidationError) {
+	if (err.message === `User already has a review for this spot`) {
+		console.error(err);
+		err.errors = {
+			userIdSpotId: `Must be unique`,
+		};
+		err.title = 'Validation Error';
+	} else if (err instanceof ValidationError) {
 		let errors = {};
 		for (let error of err.errors) {
 			errors[error.path] = error.message;

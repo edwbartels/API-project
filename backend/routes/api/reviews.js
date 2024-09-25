@@ -11,6 +11,7 @@ const {
 } = require('../../db/models');
 const { Op, fn, col } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
+const { handleValidationErrors } = require('../../utils/validation');
 
 router.get('/current', requireAuth, async (req, res, next) => {
 	const { user } = req;
@@ -126,45 +127,39 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 
 // PUT edit a review by reviewId
 
-router.put('/:reviewId', requireAuth, async (req, res, next) => {
-	const { user } = req;
-	const { review, stars } = req.body;
-	const reviewInstance = await Review.findByPk(req.params.reviewId);
-	// if (!review) {
-	// 	return res.status(404).json({
-	// 		message: `Review couldn't be found`,
-	// 	});
-	// }
-	if (!reviewInstance) {
-		const err = new Error(`Review couldn't be found`, { status: 404 });
-		next(err);
+router.put(
+	'/:reviewId',
+	requireAuth,
+	handleValidationErrors,
+	async (req, res, next) => {
+		const { user } = req;
+		const { review, stars } = req.body;
+		const reviewInstance = await Review.findByPk(req.params.reviewId);
+
+		if (!reviewInstance) {
+			const err = new Error(`Review couldn't be found`);
+			err.status = 404;
+			return next(err);
+		}
+		console.log(`REVIEWUSERID: ${reviewInstance.userId}`);
+		console.log(`USERID: ${user.id}`);
+
+		if (reviewInstance.userId != user.id) {
+			const err = new Error('Forbidden');
+			err.status = 403;
+			return next(err);
+		}
+		try {
+			await reviewInstance.update({
+				review: review ?? undefined,
+				stars: stars ?? undefined,
+			});
+			res.status(200).json(reviewInstance);
+		} catch (error) {
+			next(error);
+		}
 	}
-	if (review.userId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
-		next(err);
-	}
-	try {
-		await reviewInstance.update({
-			review: review ?? undefined,
-			stars: stars ?? undefined,
-		});
-		res.status(200).json(review);
-	} catch (error) {
-		next(error);
-		// console.error(error);
-		// if (error instanceof ValidationError) {
-		// 	const errors = {};
-		// 	error.errors.forEach((err) => {
-		// 		errors[err.path] = err.message;
-		// 	});
-		// 	return res.status(400).json({
-		// 		message: 'Bad Request',
-		// 		errors,
-		// 	});
-		// }
-		// return res.status(500).json({ message: 'Internal Server Error' });
-	}
-});
+);
 
 // DELETE a review by id
 

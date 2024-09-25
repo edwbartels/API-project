@@ -371,11 +371,9 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 		res.status(201).json(newReview);
 	} catch (error) {
 		if (error instanceof UniqueConstraintError) {
-			// return res.status(500).json({
-			// 	message: 'User already has a review for this spot',
-			// });
 			error.status = 500;
 			error.message = `User already has a review for this spot`;
+			return next(error);
 		}
 		next(error);
 	}
@@ -387,30 +385,44 @@ router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const spot = await Spot.findByPk(req.params.spotId);
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
 		next(err);
 	}
 	try {
 		let bookings;
+		let formattedBookings;
 		if (spot.ownerId === user.id) {
 			bookings = await Booking.findAll({
-				where: {
-					spotId: spot.id,
-				},
 				include: {
 					model: User,
 					attributes: ['id', 'firstName', 'lastName'],
 				},
+				where: {
+					spotId: spot.id,
+				},
+			});
+			formattedBookings = bookings.map((booking) => {
+				return {
+					User: booking.User,
+					id: booking.id,
+					spotId: booking.spotId,
+					userId: booking.userId,
+					startDate: booking.startDate,
+					endDate: booking.endDate,
+					createdAt: booking.createdAt,
+					updatedAt: booking.updatedAt,
+				};
 			});
 		} else {
-			bookings = await Booking.findAll({
+			formattedBookings = await Booking.findAll({
 				where: {
 					spotId: spot.id,
 				},
 				attributes: ['spotId', 'startDate', 'endDate'],
 			});
 		}
-		res.status(200).json(bookings);
+		res.status(200).json({ Bookings: formattedBookings });
 	} catch (error) {
 		next(error);
 	}
@@ -421,13 +433,15 @@ router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
-	const spot = await Spot.findByPk(re.params.spotId);
+	const spot = await Spot.findByPk(req.params.spotId);
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		err.status = 404;
 		return next(err);
 	}
 	if (spot.ownerId === user.id) {
 		const err = new Error('Forbidden', { status: 403 });
+		err.status = 403;
 		return next(err);
 	}
 	const errors = {};
