@@ -11,6 +11,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const bookings = await Booking.findAll({
 		where: { ownerId: user.id },
+		include: { model: Spot },
 	});
 	res.status(200).json(bookings);
 });
@@ -21,13 +22,12 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
 	const booking = await Booking.findByPk(req.params.bookingId);
-	// if (!booking) {
-	// 	return res.status(404).json({
-	// 		message: `Booking couldn't be found`,
-	// 	});
-	// }
 	if (!booking) {
 		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (booking.userId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
 		next(err);
 	}
 	try {
@@ -67,6 +67,11 @@ router.delete('/:bookingId', requireAuth, async (req, res, next) => {
 	// }
 	if (!booking) {
 		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		next(err);
+	}
+	const spot = await Spot.findByPk(booking.spotId);
+	if (booking.userId != user.id && spot.ownerId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
 		next(err);
 	}
 	await booking.destroy();

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { Spot, Review, Booking, ReviewImage } = require('../../db/models');
+const { User, Spot, Review, Booking, ReviewImage } = require('../../db/models');
 const { Op, fn, col } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
 
@@ -13,7 +13,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		},
 		include: [
 			{
-				model: 'Users',
+				model: User,
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 			{
@@ -90,21 +90,25 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 
 router.put('/:reviewId', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	const { rev, stars } = req.body;
-	const review = await Review.findByPk(req.params.reviewId);
+	const { review, stars } = req.body;
+	const reviewInstance = await Review.findByPk(req.params.reviewId);
 	// if (!review) {
 	// 	return res.status(404).json({
 	// 		message: `Review couldn't be found`,
 	// 	});
 	// }
-	if (!review) {
+	if (!reviewInstance) {
 		const err = new Error(`Review couldn't be found`, { status: 404 });
 		next(err);
 	}
+	if (review.userId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
+		next(err);
+	}
 	try {
-		await review.update({
-			review: rev,
-			stars: stars,
+		await reviewInstance.update({
+			review: review ?? undefined,
+			stars: stars ?? undefined,
 		});
 		res.status(200).json(review);
 	} catch (error) {
@@ -136,6 +140,10 @@ router.delete('/:reviewId', requireAuth, async (req, res, next) => {
 	// }
 	if (!review) {
 		const err = new Error(`Review couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (review.userId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
 		next(err);
 	}
 	await review.destroy();

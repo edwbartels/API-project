@@ -25,10 +25,22 @@ module.exports = (sequelize, DataTypes) => {
 			},
 			review: {
 				type: DataTypes.STRING,
+				allowNull: false,
+				validate: {
+					notEmpty: {
+						msg: `Review text is required`,
+					},
+				},
 			},
 			stars: {
 				type: DataTypes.INTEGER,
 				allowNull: false,
+				validate: {
+					len: {
+						args: [1, 5],
+						msg: `Stars must be an integer from 1 to 5`,
+					},
+				},
 			},
 		},
 		{

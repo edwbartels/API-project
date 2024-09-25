@@ -2,9 +2,14 @@ const express = require('express');
 const router = express.Router();
 
 const { Spot, User, Review, Booking, SpotImage } = require('../../db/models');
-const { Op, fn, col } = require('sequelize');
+const {
+	Op,
+	fn,
+	col,
+	ValidationError,
+	UniqueConstraintError,
+} = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
-const { ValidationError, UniqueConstraintError } = require('sequelize');
 
 // GET all spots
 router.get('/', async (req, res, next) => {
@@ -65,6 +70,7 @@ router.get('/:spotId', async (req, res, next) => {
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 		],
+		attributes: [],
 	});
 
 	if (!spot) {
@@ -153,15 +159,15 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 	}
 	try {
 		await spot.update({
-			address: address,
-			city: city,
-			state: state,
-			country: country,
-			lat: lat,
-			lng: lng,
-			name: name,
-			description: description,
-			price: price,
+			address: address ?? undefined,
+			city: city ?? undefined,
+			state: state ?? undefined,
+			country: country ?? undefined,
+			lat: lat ?? undefined,
+			lng: lng ?? undefined,
+			name: name ?? undefined,
+			description: description ?? undefined,
+			price: price ?? undefined,
 		});
 		res.status(200).json(spot);
 	} catch (error) {
@@ -283,29 +289,35 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 
 router.get('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	const spotBookings = await Spot.findByPk(req.params.spotId, {
-		attributes: [],
-		include: {
-			model: Booking,
-			attributes: ['spotId', 'startDate', 'endDate'],
-		},
-	});
-	// if (!spotBookings) {
-	// 	res.status(404).json({
-	// 		message: `Spot couldn't be found`,
-	// 	});
-	// }
-	if (!spotBookings) {
+	const spot = await Spot.findByPk(req.params.spotId);
+	if (!spot) {
 		const err = new Error(`Spot couldn't be found`, { status: 404 });
 		next(err);
 	}
-	// const bookings = await Booking.findAll({
-	// 	where: {
-	// 		spotId: req.params.spotId,
-	// 	},
-	// 	attributes: ['spotId', 'startDate', 'endDate'],
-	// });
-	res.status(200).json(spotBookings);
+	try {
+		let bookings;
+		if (spot.ownerId === user.id) {
+			bookings = await Booking.findAll({
+				where: {
+					spotId: spot.id,
+				},
+				include: {
+					model: User,
+					attributes: ['id', 'firstName', 'lastName'],
+				},
+			});
+		} else {
+			bookings = await Booking.findAll({
+				where: {
+					spotId: spot.id,
+				},
+				attributes: ['spotId', 'startDate', 'endDate'],
+			});
+		}
+		res.status(200).json(bookings);
+	} catch (error) {
+		next(error);
+	}
 });
 
 // POST create booking by spotId
@@ -314,13 +326,12 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
 	const spot = await Spot.findByPk(re.params.spotId);
-	// if (!spot) {
-	// 	return res.status(404).json({
-	// 		message: `Spot couldn't be found`,
-	// 	});
-	// }
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (spot.ownerId === user.id) {
+		const err = new Error('Forbidden', { status: 403 });
 		next(err);
 	}
 	try {

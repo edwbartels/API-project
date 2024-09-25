@@ -15,7 +15,12 @@ const { requireAuth } = require('../../utils/auth');
 
 router.delete('/:imageId', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	const img = await ReviewImage.findByPk(req.params.imageId);
+	const img = await ReviewImage.findByPk(req.params.imageId, {
+		include: {
+			model: Review,
+			attributes: ['userId'],
+		},
+	});
 	// if (!img) {
 	// 	return res.status(404).json({
 	// 		message: `Review Image couldn't be found`,
@@ -23,6 +28,10 @@ router.delete('/:imageId', requireAuth, async (req, res, next) => {
 	// }
 	if (!img) {
 		const err = new Error(`Review Image couldn't be found`, { status: 404 });
+		next(err);
+	}
+	if (img.Review.userId != user.id) {
+		const err = new Error('Forbidden', { status: 403 });
 		next(err);
 	}
 	await img.destroy();
