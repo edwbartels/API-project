@@ -23,7 +23,6 @@ const { validateQueryParams } = require('../../utils/validation');
 // GET all spots
 router.get('/', validateQueryParams, async (req, res, next) => {
 	const queryParams = req.queryParams;
-	console.log(queryParams);
 	const limit = queryParams.size;
 	const offset = (queryParams.page - 1) * queryParams.size;
 	const where = {};
@@ -46,9 +45,6 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 	if (queryParams.maxPrice) {
 		where.price = { ...where.price, [Op.lte]: queryParams.maxPrice };
 	}
-	console.log(where);
-	console.log(queryParams.page);
-	console.log(queryParams.size);
 	const spots = await Spot.findAll({
 		where: where,
 		attributes: {
@@ -231,7 +227,6 @@ router.get('/:spotId', async (req, res, next) => {
 
 router.post('/', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	console.log(user);
 	const { address, city, state, country, lat, lng, name, description, price } =
 		req.body;
 	try {
@@ -257,7 +252,6 @@ router.post('/', requireAuth, async (req, res, next) => {
 
 router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	console.log(user);
 	const spot = await Spot.findByPk(req.params.spotId);
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`);
@@ -284,9 +278,6 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 		return res.status(201).json(formattedImg);
 	} catch (error) {
 		if (error.name === 'SequelizeForeignKeyConstraintError') {
-			// return res.status(404).json({
-			// 	message: `Spot couldn't be found`,
-			// });
 			error.status = 404;
 			error.message = `Spot couldn't be found`;
 		}
@@ -298,7 +289,6 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 
 router.put('/:spotId', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	console.log(user);
 	const { address, city, state, country, lat, lng, name, description, price } =
 		req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
@@ -328,16 +318,6 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 		res.status(200).json(spot);
 	} catch (error) {
 		next(error);
-		// if (error instanceof ValidationError) {
-		// 	const errors = {};
-		// 	error.errors.forEach((err) => {
-		// 		errors[err.path] = err.message;
-		// 	});
-		// 	return res.status(400).json({
-		// 		message: 'Bad Request',
-		// 		errors,
-		// 	});
-		// }
 	}
 });
 
@@ -345,18 +325,16 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 
 router.delete('/:spotId', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	console.log(user);
 	const spot = await Spot.findByPk(req.params.spotId);
-	// if (!spot)
-	// 	return res.status(404).json({
-	// 		message: `Spot couldn't be found`,
-	// 	});
+
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
 		next(err);
 	}
 	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
+		const err = new Error('Forbidden');
+		err.status = 403;
 		next(err);
 	}
 	await spot.destroy();
@@ -484,7 +462,7 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 		return next(err);
 	}
 	if (spot.ownerId === user.id) {
-		const err = new Error('Forbidden', { status: 403 });
+		const err = new Error('Forbidden');
 		err.status = 403;
 		return next(err);
 	}

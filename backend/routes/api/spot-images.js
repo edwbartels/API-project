@@ -16,11 +16,13 @@ router.delete('/:imageId', requireAuth, async (req, res, next) => {
 		},
 	});
 	if (!img) {
-		const err = new Error(`Spot Image couldn't be found`, { status: 404 });
+		const err = new Error(`Spot Image couldn't be found`);
+		err.status = 404;
 		next(err);
 	}
 	if (img.Spot.ownerId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
+		const err = new Error('Forbidden');
+		err.status = 403;
 		next(err);
 	}
 	await img.destroy();

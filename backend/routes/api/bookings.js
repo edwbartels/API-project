@@ -53,13 +53,20 @@ router.get('/current', requireAuth, async (req, res, next) => {
 router.put('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { startDate, endDate } = req.body;
+	if (new Date(endDate) < new Date()) {
+		const err = new Error(`Past bookings can't be modifed`);
+		err.status = 403;
+		return next(err);
+	}
 	const booking = await Booking.findByPk(req.params.bookingId);
 	if (!booking) {
-		const err = new Error(`Booking couldn't be found`, { status: 404 });
+		const err = new Error(`Booking couldn't be found`);
+		err.status = 404;
 		return next(err);
 	}
 	if (booking.userId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
+		const err = new Error('Forbidden');
+		err.status = 403;
 		return next(err);
 	}
 	const errors = {};

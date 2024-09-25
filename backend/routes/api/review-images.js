@@ -21,11 +21,6 @@ router.delete('/:imageId', requireAuth, async (req, res, next) => {
 			attributes: ['userId'],
 		},
 	});
-	// if (!img) {
-	// 	return res.status(404).json({
-	// 		message: `Review Image couldn't be found`,
-	// 	});
-	// }
 	if (!img) {
 		const err = new Error(`Review Image couldn't be found`);
 		err.status = 404;
