@@ -61,8 +61,12 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.DECIMAL,
 				allowNull: false,
 				validate: {
-					len: {
-						args: [-90, 90],
+					max: {
+						args: [90],
+						msg: `Latitude must be within -90 and 90`,
+					},
+					min: {
+						args: [-90],
 						msg: `Latitude must be within -90 and 90`,
 					},
 				},
@@ -71,8 +75,12 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.DECIMAL,
 				allowNull: false,
 				validate: {
-					len: {
-						args: [-180, 180],
+					max: {
+						args: [180],
+						msg: `Longitude must be within -180 and 180`,
+					},
+					min: {
+						args: [-180],
 						msg: `Longitude must be within -180 and 180`,
 					},
 				},
@@ -82,8 +90,8 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				unique: true,
 				validate: {
-					max: {
-						args: [50],
+					len: {
+						args: [0, 50],
 						msg: `Name must be less than 50 characters`,
 					},
 				},
@@ -93,7 +101,7 @@ module.exports = (sequelize, DataTypes) => {
 				allowNull: false,
 				validate: {
 					notEmpty: {
-						msg: ` Description is required`,
+						msg: `Description is required`,
 					},
 				},
 			},

@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const { User, Spot, Review, Booking, ReviewImage } = require('../../db/models');
+const {
+	User,
+	Spot,
+	Review,
+	Booking,
+	ReviewImage,
+	SpotImage,
+} = require('../../db/models');
 const { Op, fn, col } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
 
@@ -17,7 +24,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 			{
-				model: 'Spots',
+				model: Spot,
 				attributes: [
 					'id',
 					'ownerId',
@@ -29,16 +36,49 @@ router.get('/current', requireAuth, async (req, res, next) => {
 					'lng',
 					'name',
 					'price',
-					'previewImage',
 				],
+				include: {
+					model: SpotImage,
+					where: {
+						preview: true,
+					},
+					required: true,
+					attributes: ['url', 'preview'],
+				},
 			},
 			{
-				model: 'ReviewImages',
+				model: ReviewImage,
 				attributes: ['id', 'url'],
 			},
 		],
 	});
-	res.status(200).json(reviews);
+	const formattedReviews = reviews.map((review) => {
+		return {
+			id: review.id,
+			spotId: review.spotId,
+			userId: review.userId,
+			review: review.review,
+			stars: review.stars,
+			createdAt: review.createdAt,
+			updatedAt: review.updatedAt,
+			User: review.User,
+			Spot: {
+				id: review.Spot.id,
+				ownerId: review.Spot.id,
+				address: review.Spot.address,
+				city: review.Spot.city,
+				state: review.Spot.state,
+				country: review.Spot.country,
+				lat: review.Spot.lat,
+				lng: review.Spot.lng,
+				name: review.Spot.name,
+				price: review.Spot.price,
+				previewImage: review.Spot.SpotImages[0].url,
+			},
+			ReviewImages: review.ReviewImages || review.ReviewImage,
+		};
+	});
+	res.status(200).json({ Reviews: formattedReviews });
 });
 
 // POST add image to review by reviewId
@@ -49,28 +89,26 @@ router.post('/:reviewId/images', requireAuth, async (req, res, next) => {
 	const review = await Review.findByPk(req.params.reviewId, {
 		include: {
 			model: ReviewImage,
-			attributes: [[fn('COUNT', col('url')), 'imageCount']],
+			attributes: ['id'],
 		},
 	});
-	// if (!review) {
-	// 	return res.status(404).json({
-	// 		message: `Review couldn't be found`,
-	// 	});
-	// }
+	console.log(review);
 	if (!review) {
-		const err = new Error(`Review couldn't be found`, { status: 404 });
-		next(err);
+		const err = new Error(`Review couldn't be found`);
+		err.status = 404;
+		return next(err);
 	}
 	if (review.userId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		const err = new Error('Forbidden');
+		err.status = 403;
+		return next(err);
 	}
-	if (review.imageCount >= 10) {
+	if (review.ReviewImages.length >= 10) {
 		const err = new Error(
-			`Maximum number of images for this resource was reached`,
-			{ status: 403 }
+			`Maximum number of images for this resource was reached`
 		);
-		next(err);
+		err.status = 403;
+		return next(err);
 		// return res.status(403).json({
 		// 	message: 'Maximum number of iamges for this resource was reached',
 		// });

@@ -1,7 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-const { Spot, User, Review, Booking, SpotImage } = require('../../db/models');
+const {
+	Spot,
+	User,
+	Review,
+	Booking,
+	SpotImage,
+	ReviewImage,
+} = require('../../db/models');
 const {
 	Op,
 	fn,
@@ -87,7 +94,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		attributes: {
 			include: [
 				[fn('AVG', col('Reviews.stars')), 'avgRating'],
-				[fn('GROUP_CONCAT', col('SpotImages.url')), 'previewImage'],
+				[fn('GROUP_CONCAT', col('SpotImage.url')), 'previewImage'],
 			],
 		},
 		group: ['Spot.id'],
@@ -115,7 +122,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		};
 	});
 
-	res.json({ Spots: formattedSpots });
+	res.status(200).json({ Spots: formattedSpots });
 });
 
 // GET spot by id
@@ -148,7 +155,8 @@ router.get('/:spotId', async (req, res, next) => {
 	});
 
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		const err = new Error(`Spot couldn't be found`);
+		err.status(404);
 		next(err);
 	}
 
@@ -208,12 +216,14 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 	console.log(user);
 	const spot = await Spot.findByPk(req.params.spotId);
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
-		next(err);
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		return next(err);
 	}
 	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		const err = new Error('Forbidden');
+		err.status = 403;
+		return next(err);
 	}
 	const { url, preview } = req.body;
 	try {
@@ -227,7 +237,7 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 			url: img.url,
 			preview: img.preview,
 		};
-		res.status(201).json(formattedImg);
+		return res.status(201).json(formattedImg);
 	} catch (error) {
 		if (error.name === 'SequelizeForeignKeyConstraintError') {
 			// return res.status(404).json({
@@ -250,12 +260,14 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 	const spot = await Spot.findByPk(req.params.spotId);
 
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
-		next(err);
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		return next(err);
 	}
 	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		const err = new Error('Forbidden');
+		err.status = 403;
+		return next(err);
 	}
 	try {
 		await spot.update({
@@ -312,31 +324,29 @@ router.delete('/:spotId', requireAuth, async (req, res, next) => {
 // GET reviews by spotId
 
 router.get('/:spotId/reviews', async (req, res, next) => {
+	const spot = await Spot.findByPk(req.params.spotId);
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		return next(err);
+	}
 	const reviews = await Review.findAll({
 		where: {
 			spotId: req.params.spotId,
 		},
 		include: [
 			{
-				model: 'Users',
+				model: User,
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 			{
-				model: 'ReviewImages',
+				model: ReviewImage,
 				attributes: ['id', 'url'],
 			},
 		],
 	});
-	// if (!reviews) {
-	// 	return res.status(404).json({
-	// 		message: `Spot couldn't be found`,
-	// 	});
-	// }
-	if (!reviews) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
-		next(err);
-	}
-	res.status(200).json(reviews);
+
+	res.status(200).json({ Reviews: reviews });
 });
 
 //POST create review by spotId
@@ -346,34 +356,20 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 	const { review, stars } = req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
 
-	// if (!spot) {
-	// 	return res.status(404).json({
-	// 		message: `Spot couldn't be found`,
-	// 	});
-	// }
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
-		next(err);
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		return next(err);
 	}
 	try {
 		const newReview = await Review.create({
 			userId: user.id,
-			spotId: req.params.spotId,
+			spotId: spot.id,
 			review: review,
 			stars: stars,
 		});
 		res.status(201).json(newReview);
 	} catch (error) {
-		// if (error instanceof ValidationError) {
-		// 	const errors = {};
-		// 	error.errors.forEach((err) => {
-		// 		errors[err.path] = err.message;
-		// 	});
-		// 	return res.status(400).json({
-		// 		message: 'Bad Request',
-		// 		errors,
-		// 	});
-		// }
 		if (error instanceof UniqueConstraintError) {
 			// return res.status(500).json({
 			// 	message: 'User already has a review for this spot',

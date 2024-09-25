@@ -17,9 +17,21 @@ module.exports = (sequelize, DataTypes) => {
 		{
 			firstName: {
 				type: DataTypes.STRING,
+				allowNull: false,
+				validate: {
+					notEmpty: {
+						msg: `First Name is required`,
+					},
+				},
 			},
 			lastName: {
 				type: DataTypes.STRING,
+				allowNull: false,
+				validate: {
+					notEmpty: {
+						msg: `Last Name is required`,
+					},
+				},
 			},
 			email: {
 				type: DataTypes.STRING,
@@ -30,8 +42,9 @@ module.exports = (sequelize, DataTypes) => {
 						args: [3, 256],
 						msg: 'String length much be between 3 and 256 characters',
 					},
-					// len: [3, 256],
-					isEmail: true,
+					isEmail: {
+						msg: 'Invalid email',
+					},
 				},
 			},
 			username: {
@@ -48,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
 						if (Validator.isEmail(value)) {
 							throw new Error('Cannot be an email.');
 						}
+					},
+					notEmpty: {
+						msg: 'Username is required',
 					},
 				},
 			},
