@@ -23,6 +23,7 @@ const { validateQueryParams } = require('../../utils/validation');
 // GET all spots
 router.get('/', validateQueryParams, async (req, res, next) => {
 	const queryParams = req.queryParams;
+	console.log(queryParams);
 	const limit = queryParams.size;
 	const offset = (queryParams.page - 1) * queryParams.size;
 	const where = {};
@@ -46,7 +47,8 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		where.price = { ...where.price, [Op.lte]: queryParams.maxPrice };
 	}
 	console.log(where);
-
+	console.log(queryParams.page);
+	console.log(queryParams.size);
 	const spots = await Spot.findAll({
 		where: where,
 		attributes: {
@@ -104,7 +106,11 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		};
 	});
 
-	res.json({ Spots: formattedSpots });
+	res.json({
+		Spots: formattedSpots,
+		page: queryParams.page,
+		size: queryParams.size,
+	});
 });
 
 // GET all spots owned by current user

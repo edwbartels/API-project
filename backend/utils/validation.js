@@ -32,13 +32,18 @@ const validateQueryParams = (req, res, next) => {
 		maxPrice: undefined,
 	};
 	const queryParams = {};
-
+	console.log(defaults);
 	for (const [key, defaultValue] of Object.entries(defaults)) {
-		if (req.query[key] !== undefined) {
-			if (key === 'page' || key === 'size') {
-				queryParams[key] = parseInt(req.query[key]) ?? defaultValue;
-			} else queryParams[key] = parseFloat(req.query[key]) ?? defaultValue;
-		}
+		// if (req.query[key] !== undefined) {
+		if (key === 'page' || key === 'size') {
+			queryParams[key] = !isNaN(parseInt(req.query[key]))
+				? parseInt(req.query[key])
+				: defaultValue;
+		} else
+			queryParams[key] = !isNaN(parseFloat(req.query[key]))
+				? parseFloat(req.query[key])
+				: defaultValue;
+		// }
 	}
 	const errors = {};
 	if (queryParams.page < 1) {
