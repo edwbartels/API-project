@@ -328,12 +328,46 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const spot = await Spot.findByPk(re.params.spotId);
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`, { status: 404 });
-		next(err);
+		return next(err);
 	}
 	if (spot.ownerId === user.id) {
 		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		return next(err);
 	}
+	const errors = {};
+	const conflict = await Booking.findAll({
+		where: {
+			spotId: spot.id,
+			[Op.or]: [
+				{
+					startDate: {
+						[Op.lt]: endDate,
+					},
+					endDate: {
+						[Op.gt]: startDate,
+					},
+				},
+			],
+		},
+	});
+
+	for (const booking of conflict) {
+		if (startDate >= booking.startDate && startDate <= booking.endDate) {
+			errors.startDate = 'Start date conflicts with an existing booking';
+		}
+		if (endDate >= booking.startDate && endDate <= booking.endDate) {
+			errors.endDate = 'End date conflicts with an existing booking';
+		}
+	}
+	if (Object.keys(errors).length > 0) {
+		const err = new Error(
+			'Sorry, this spot is already booked for the specified dates'
+		);
+		err.status = 403;
+		err.errors = errors;
+		return next(err);
+	}
+
 	try {
 		const booking = await Booking.create({
 			spotId: req.params.spotId,
@@ -344,18 +378,6 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 		res.status(201).json(booking);
 	} catch (error) {
 		next(error);
-		// console.error(error);
-		// if (error instanceof ValidationError) {
-		// 	const errors = {};
-		// 	error.errors.forEach((err) => {
-		// 		errors[err.path] = err.message;
-		// 	});
-		// 	return res.status(400).json({
-		// 		message: 'Bad Request',
-		// 		errors,
-		// 	});
-		// }
-		// return res.status(500).json({ message: 'Internal Server Error' });
 	}
 });
 module.exports = router;

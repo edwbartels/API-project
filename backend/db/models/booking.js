@@ -25,10 +25,38 @@ module.exports = (sequelize, DataTypes) => {
 			startDate: {
 				type: DataTypes.DATE,
 				allowNull: false,
+				validate: {
+					isDate: {
+						msg: `startDate must be a valid date`,
+					},
+					isFuture(value) {
+						if (new Date(value) < new Date()) {
+							throw new Error('Start date must be in the future');
+						}
+					},
+				},
 			},
 			endDate: {
 				type: DataTypes.DATE,
 				allowNull: false,
+				validate: {
+					isDate: {
+						msg: `endDate must be a valid date`,
+					},
+					isAfterStart(value) {
+						const { startDate } = this;
+						if (new Date(value) <= new Date(startDate)) {
+							throw new Error(`endDate cannot be on or before startDate`);
+						}
+
+						// For Use to ensure end must be at least the following day,
+						// rather than just in the future (ie, booking from 1am - 1pm invalid)
+
+						// if (new Date(value).toDateString() === new Date(startDate).toDateString()) {
+						// throw new Error('End date must be a different day than the start date');
+						//   }
+					},
+				},
 			},
 		},
 		{

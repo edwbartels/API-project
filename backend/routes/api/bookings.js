@@ -24,11 +24,11 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 	const booking = await Booking.findByPk(req.params.bookingId);
 	if (!booking) {
 		const err = new Error(`Booking couldn't be found`, { status: 404 });
-		next(err);
+		return next(err);
 	}
 	if (booking.userId != user.id) {
 		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		return next(err);
 	}
 	try {
 		await booking.update({
@@ -38,20 +38,6 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 		res.status(200).json(booking);
 	} catch (error) {
 		next(error);
-		// console.error(error);
-		// if (error instanceof ValidationError) {
-		// 	const errors = {};
-		// 	error.errors.forEach((err) => {
-		// 		errors[err.path] = err.message;
-		// 	});
-		// 	return res.status(400).json({
-		// 		message: 'Bad Request',
-		// 		errors,
-		// 	});
-		// }
-		// return res.status(500).json({
-		// 	message: ' Internal Server Error',
-		// });
 	}
 });
 
@@ -59,20 +45,28 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 
 router.delete('/:bookingId', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	const booking = await Booking.findByPk(req.params.bookingId);
-	// if (!booking) {
-	// 	return res.status(404).json({
-	// 		message: `Booking couldn't be found`,
-	// 	});
-	// }
+	const booking = await Booking.findByPk(req.params.bookingId, {
+		include: [
+			{
+				model: Spot,
+				attributes: ['ownerId'],
+			},
+		],
+	});
+
 	if (!booking) {
 		const err = new Error(`Booking couldn't be found`, { status: 404 });
-		next(err);
+		return next(err);
 	}
-	const spot = await Spot.findByPk(booking.spotId);
-	if (booking.userId != user.id && spot.ownerId != user.id) {
+	if (booking.userId != user.id && booking.Spot.ownerId != user.id) {
 		const err = new Error('Forbidden', { status: 403 });
-		next(err);
+		return next(err);
+	}
+	if (new Date(booking.startDate).getTime() < Date.now()) {
+		const err = new Error(`Bookings that have been started can't be deleted`, {
+			status: 403,
+		});
+		return next(err);
 	}
 	await booking.destroy();
 	res.status(200).json({
