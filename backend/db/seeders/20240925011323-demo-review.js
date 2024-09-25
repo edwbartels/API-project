@@ -1,5 +1,5 @@
 'use strict';
-const { Review } = require('sequelize');
+const { Review } = require('../models');
 
 let options = {};
 if (process.env.NODE_ENV === 'production') {

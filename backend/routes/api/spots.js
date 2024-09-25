@@ -13,29 +13,53 @@ const { requireAuth } = require('../../utils/auth');
 
 // GET all spots
 router.get('/', async (req, res, next) => {
-	let spots = [];
-	spots = await Spot.findAll();
-	spots.forEach((el) => {
-		const { avg } = Review.findOne({
-			where: {
-				spotId: el.id,
+	const spots = await Spot.findAll({
+		include: [
+			{
+				model: Review,
+				attributes: [],
 			},
-			attributes: [[fn('AVG', col('stars')), 'avgRating']],
-			raw: true,
-		});
-		el.avgRating = avg ? parseFloat(avg) : 0;
-		const { imgUrl } = SpotImage.findOne({
-			where: {
-				spotId: el.id,
-				preview: true,
+			{
+				model: SpotImage,
+				required: false,
+				where: {
+					preview: true,
+				},
+				attributes: ['url'],
 			},
-			attributes: ['url'],
-			raw: true,
-		});
-		el.previewImage = imgUrl ?? null;
+		],
+		attributes: {
+			include: [
+				[fn('AVG', col('Reviews.stars')), 'avgRating'],
+				[fn('GROUP_CONCAT', col('SpotImages.url')), 'previewImage'],
+			],
+		},
+		group: ['Spot.id'],
 	});
 
-	res.json(spots);
+	const formattedSpots = spots.map((spot) => {
+		return {
+			id: spot.id,
+			ownerId: spot.ownerId,
+			address: spot.address,
+			city: spot.city,
+			state: spot.state,
+			country: spot.country,
+			lat: spot.lat,
+			lng: spot.lng,
+			name: spot.name,
+			description: spot.description,
+			price: spot.price,
+			createdAt: spot.createdAt,
+			updatedAt: spot.updatedAt,
+			avgRating: spot.dataValues.avgRating || null,
+			previewImage: spot.dataValues.previewImage
+				? spot.dataValues.previewImage.split(',')[0]
+				: null,
+		};
+	});
+
+	res.json({ Spots: formattedSpots });
 });
 
 // GET all spots owned by current user
@@ -43,10 +67,55 @@ router.get('/', async (req, res, next) => {
 router.get('/current', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const spots = await Spot.findAll({
-		where: { ownerId: user.id },
+		where: {
+			ownerId: user.id,
+		},
+		include: [
+			{
+				model: Review,
+				attributes: [],
+			},
+			{
+				model: SpotImage,
+				required: false,
+				where: {
+					preview: true,
+				},
+				attributes: ['url'],
+			},
+		],
+		attributes: {
+			include: [
+				[fn('AVG', col('Reviews.stars')), 'avgRating'],
+				[fn('GROUP_CONCAT', col('SpotImages.url')), 'previewImage'],
+			],
+		},
+		group: ['Spot.id'],
 	});
 
-	res.status(200).json(spots);
+	const formattedSpots = spots.map((spot) => {
+		return {
+			id: spot.id,
+			ownerId: spot.ownerId,
+			address: spot.address,
+			city: spot.city,
+			state: spot.state,
+			country: spot.country,
+			lat: spot.lat,
+			lng: spot.lng,
+			name: spot.name,
+			description: spot.description,
+			price: spot.price,
+			createdAt: spot.createdAt,
+			updatedAt: spot.updatedAt,
+			avgRating: spot.dataValues.avgRating || null,
+			previewImage: spot.dataValues.previewImage
+				? spot.dataValues.previewImage.split(',')[0]
+				: null,
+		};
+	});
+
+	res.json({ Spots: formattedSpots });
 });
 
 // GET spot by id
@@ -56,28 +125,54 @@ router.get('/:spotId', async (req, res, next) => {
 		include: [
 			{
 				model: Review,
-				attributes: [
-					[fn('COUNT', col('stars')), 'numReviews'],
-					[fn('AVG', col('stars')), 'avgStarRating'],
-				],
+				attributes: [],
 			},
 			{
 				model: SpotImage,
 				attributes: ['id', 'url', 'preview'],
+				required: false,
 			},
 			{
 				model: User,
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 		],
-		attributes: [],
+		attributes: {
+			include: [
+				[fn('COUNT', col('Reviews.id')), 'numReviews'],
+				[fn('AVG', col('Reviews.stars')), 'avgRating'],
+				// fn('DISTINCT',
+			],
+		},
+		group: ['SpotImages.id'],
 	});
 
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`, { status: 404 });
 		next(err);
 	}
-	res.status(200).json(spot);
+
+	const formattedSpot = {
+		id: spot.id,
+		ownerId: spot.ownerId,
+		address: spot.address,
+		city: spot.city,
+		state: spot.state,
+		country: spot.country,
+		lat: spot.lat,
+		lng: spot.lng,
+		name: spot.name,
+		description: spot.description,
+		price: spot.price,
+		createdAt: spot.createdAt,
+		updatedAt: spot.updatedAt,
+		Reviews: spot.Reviews,
+		numReviews: spot.dataValues.numReviews || 0,
+		avgRating: spot.dataValues.avgRating || 0,
+		SpotImages: spot.SpotImages,
+		Owner: spot.User,
+	};
+	res.status(200).json(formattedSpot);
 });
 
 // POST create a spot
@@ -127,7 +222,12 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 			url: url,
 			preview: preview,
 		});
-		res.status(201).json(img);
+		const formattedImg = {
+			id: img.id,
+			url: img.url,
+			preview: img.preview,
+		};
+		res.status(201).json(formattedImg);
 	} catch (error) {
 		if (error.name === 'SequelizeForeignKeyConstraintError') {
 			// return res.status(404).json({

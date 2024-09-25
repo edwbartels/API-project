@@ -11,26 +11,18 @@ module.exports = {
 			{
 				reviewId: 1,
 				url: 'https://example.com/review1_image1.jpg',
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			},
 			{
 				reviewId: 1,
 				url: 'https://example.com/review1_image2.jpg',
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			},
 			{
 				reviewId: 2,
 				url: 'https://example.com/review2_image1.jpg',
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			},
 			{
 				reviewId: 3,
 				url: 'https://example.com/review3_image1.jpg',
-				createdAt: new Date(),
-				updatedAt: new Date(),
 			},
 		]);
 	},
