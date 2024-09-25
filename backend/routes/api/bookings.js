@@ -62,6 +62,44 @@ router.put('/:bookingId', requireAuth, async (req, res, next) => {
 		const err = new Error('Forbidden', { status: 403 });
 		return next(err);
 	}
+	const errors = {};
+	const conflict = await Booking.findAll({
+		where: {
+			spotId: booking.spotId,
+			[Op.or]: [
+				{
+					startDate: {
+						[Op.lt]: endDate,
+					},
+					endDate: {
+						[Op.gt]: startDate,
+					},
+				},
+			],
+		},
+	});
+
+	for (const booking of conflict) {
+		const existingStart = new Date(booking.startDate);
+		const existingEnd = new Date(booking.endDate);
+		const newStart = new Date(startDate);
+		const newEnd = new Date(endDate);
+		if (newStart >= existingStart && newStart <= existingEnd) {
+			errors.startDate = 'Start date conflicts with an existing booking';
+		}
+		if (newEnd >= existingStart && newEnd <= existingEnd) {
+			errors.endDate = 'End date conflicts with an existing booking';
+		}
+	}
+	if (Object.keys(errors).length > 0) {
+		const err = new Error(
+			'Sorry, this spot is already booked for the specified dates'
+		);
+		err.status = 403;
+		err.errors = errors;
+		return next(err);
+	}
+
 	try {
 		await booking.update({
 			startDate: startDate,

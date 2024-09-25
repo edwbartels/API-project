@@ -435,7 +435,7 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	const { startDate, endDate } = req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
 	if (!spot) {
-		const err = new Error(`Spot couldn't be found`, { status: 404 });
+		const err = new Error(`Spot couldn't be found`);
 		err.status = 404;
 		return next(err);
 	}
@@ -462,10 +462,14 @@ router.post('/:spotId/bookings', requireAuth, async (req, res, next) => {
 	});
 
 	for (const booking of conflict) {
-		if (startDate >= booking.startDate && startDate <= booking.endDate) {
+		const existingStart = new Date(booking.startDate);
+		const existingEnd = new Date(booking.endDate);
+		const newStart = new Date(startDate);
+		const newEnd = new Date(endDate);
+		if (newStart >= existingStart && newStart <= existingEnd) {
 			errors.startDate = 'Start date conflicts with an existing booking';
 		}
-		if (endDate >= booking.startDate && endDate <= booking.endDate) {
+		if (newEnd >= existingStart && newEnd <= existingEnd) {
 			errors.endDate = 'End date conflicts with an existing booking';
 		}
 	}
