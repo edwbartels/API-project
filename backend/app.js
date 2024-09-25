@@ -14,14 +14,13 @@ const { ValidationError } = require('sequelize');
 const app = express();
 
 app.use(morgan('dev'));
-
 app.use(cookieParser());
 app.use(express.json());
 
 // Security Middleware
 if (!isProduction) {
 	// enable cors only in development
-	app.use(cors());
+	app.use(cors()); 
 }
 
 // helmet helps set a variety of headers to better secure your app
