@@ -12,7 +12,7 @@ module.exports = {
 			ownerId: {
 				allowNull: false,
 				type: Sequelize.INTEGER,
-				references: { model: 'Users' },
+				references: { model: 'Users', key: 'id' },
 				onDelete: 'Cascade',
 			},
 			address: {
