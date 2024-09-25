@@ -15,16 +15,57 @@ const {
 	col,
 	ValidationError,
 	UniqueConstraintError,
+	Sequelize,
 } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
+const { validateQueryParams } = require('../../utils/validation');
 
 // GET all spots
-router.get('/', async (req, res, next) => {
+router.get('/', validateQueryParams, async (req, res, next) => {
+	const queryParams = req.queryParams;
+	const limit = queryParams.size;
+	const offset = (queryParams.page - 1) * queryParams.size;
+	const where = {};
+
+	if (queryParams.minLat) {
+		where.lat = { [Op.gte]: queryParams.minLat };
+	}
+	if (queryParams.maxlat) {
+		where.lat = { ...where.lat, [Op.lte]: queryParams.maxLat };
+	}
+	if (queryParams.minLng) {
+		where.lng = { [Op.gte]: queryParams.minLng };
+	}
+	if (queryParams.maxLng) {
+		where.lng = { ...where.lng, [Op.lte]: queryParams.maxLng };
+	}
+	if (queryParams.minPrice) {
+		where.price = { [Op.gte]: queryParams.minPrice };
+	}
+	if (queryParams.maxPrice) {
+		where.price = { ...where.price, [Op.lte]: queryParams.maxPrice };
+	}
+	console.log(where);
+
 	const spots = await Spot.findAll({
+		where: where,
+		attributes: {
+			include: [
+				[
+					Sequelize.literal(`(
+					SELECT AVG(reviews.stars)
+					FROM reviews
+					WHERE reviews.spotId = Spot.id
+				)`),
+					'avgRating',
+				],
+			],
+		},
 		include: [
 			{
 				model: Review,
 				attributes: [],
+				required: false,
 			},
 			{
 				model: SpotImage,
@@ -35,13 +76,9 @@ router.get('/', async (req, res, next) => {
 				attributes: ['url'],
 			},
 		],
-		attributes: {
-			include: [
-				[fn('AVG', col('Reviews.stars')), 'avgRating'],
-				[fn('GROUP_CONCAT', col('SpotImages.url')), 'previewImage'],
-			],
-		},
 		group: ['Spot.id'],
+		limit: limit,
+		offset: offset,
 	});
 
 	const formattedSpots = spots.map((spot) => {
@@ -60,9 +97,10 @@ router.get('/', async (req, res, next) => {
 			createdAt: spot.createdAt,
 			updatedAt: spot.updatedAt,
 			avgRating: spot.dataValues.avgRating || null,
-			previewImage: spot.dataValues.previewImage
-				? spot.dataValues.previewImage.split(',')[0]
-				: null,
+			previewImage:
+				spot.SpotImages && spot.SpotImages.length > 0
+					? spot.SpotImages[0].url
+					: null,
 		};
 	});
 
