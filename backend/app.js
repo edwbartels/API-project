@@ -72,6 +72,7 @@ app.use((err, _req, _res, next) => {
 			errors[error.path] = error.message;
 		}
 		err.title = 'Validation error';
+		err.message = 'Bad Request';
 		err.errors = errors;
 		err.status = 400;
 	}
