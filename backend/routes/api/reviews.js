@@ -15,75 +15,77 @@ const { handleValidationErrors } = require('../../utils/validation');
 
 router.get('/current', requireAuth, async (req, res, next) => {
 	const { user } = req;
-	try {
-		const reviews = await Review.findAll({
-			where: {
-				userId: user.id,
+
+	const reviews = await Review.findAll({
+		where: {
+			userId: user.id,
+		},
+		include: [
+			{
+				model: User,
+				attributes: ['id', 'firstName', 'lastName'],
 			},
-			include: [
-				{
-					model: User,
-					attributes: ['id', 'firstName', 'lastName'],
-				},
-				{
-					model: Spot,
-					attributes: [
-						'id',
-						'ownerId',
-						'address',
-						'city',
-						'state',
-						'country',
-						'lat',
-						'lng',
-						'name',
-						'price',
-					],
-					include: {
-						model: SpotImage,
-						where: {
-							preview: true,
-						},
-						required: true,
-						attributes: ['url', 'preview'],
+			{
+				model: Spot,
+				attributes: [
+					'id',
+					'ownerId',
+					'address',
+					'city',
+					'state',
+					'country',
+					'lat',
+					'lng',
+					'name',
+					'price',
+				],
+				include: {
+					model: SpotImage,
+					where: {
+						preview: true,
 					},
+					required: false,
+					attributes: ['url', 'preview'],
 				},
-				{
-					model: ReviewImage,
-					attributes: ['id', 'url'],
-				},
-			],
-		});
-		const formattedReviews = reviews.map((review) => {
-			return {
-				id: review.id,
-				spotId: review.spotId,
-				userId: review.userId,
-				review: review.review,
-				stars: review.stars,
-				createdAt: review.createdAt,
-				updatedAt: review.updatedAt,
-				User: review.User,
-				Spot: {
-					id: review.Spot.id,
-					ownerId: review.Spot.id,
-					address: review.Spot.address,
-					city: review.Spot.city,
-					state: review.Spot.state,
-					country: review.Spot.country,
-					lat: review.Spot.lat,
-					lng: review.Spot.lng,
-					name: review.Spot.name,
-					price: review.Spot.price,
-					previewImage: review.Spot.SpotImages[0].url,
-				},
-				ReviewImages: review.ReviewImages || review.ReviewImage,
-			};
-		});
-		return res.status(200).json({ Reviews: formattedReviews });
-	} catch (error) {
-		next(error);
-	}
+			},
+			{
+				model: ReviewImage,
+				attributes: ['id', 'url'],
+			},
+		],
+	});
+	if (!reviews.length) return res.status(200).json({ Reviews: reviews });
+	const formattedReviews = reviews.map((review) => {
+		return {
+			id: review.id,
+			spotId: review.spotId,
+			userId: review.userId,
+			review: review.review,
+			stars: review.stars,
+			createdAt: review.createdAt,
+			updatedAt: review.updatedAt,
+			User: review.User,
+			Spot: {
+				id: review.Spot.id,
+				ownerId: review.Spot.ownerId,
+				address: review.Spot.address,
+				city: review.Spot.city,
+				state: review.Spot.state,
+				country: review.Spot.country,
+				lat: review.Spot.lat,
+				lng: review.Spot.lng,
+				name: review.Spot.name,
+				price: review.Spot.price,
+				previewImage:
+					review.Spot.SpotImages && review.Spot.SpotImages.length > 0
+						? review.Spot.SpotImages[0].url
+						: null,
+			},
+			ReviewImages: review.ReviewImages || review.ReviewImage,
+		};
+	});
+	console.log(formattedReviews);
+	res.status(200).json({ Reviews: formattedReviews });
 });
 
 // POST add image to review by reviewId
