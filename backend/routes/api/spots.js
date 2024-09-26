@@ -110,7 +110,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			size: queryParams.size,
 		});
 	} catch (error) {
-		return next(error);
+		next(error);
 	}
 });
 
