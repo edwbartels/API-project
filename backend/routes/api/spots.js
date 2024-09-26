@@ -86,7 +86,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			state: spot.state,
 			country: spot.country,
 			lat: parseFloat(spot.lat),
-			lng: spot.lng,
+			lng: parseFloat(spot.lng),
 			name: spot.name,
 			description: spot.description,
 			price: spot.price,
