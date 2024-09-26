@@ -63,12 +63,12 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			},
 			include: [
 				{
-					model: Review,
+					model: 'Review',
 					attributes: [],
 					required: false,
 				},
 				{
-					model: SpotImage,
+					model: 'SpotImage',
 					required: false,
 					where: {
 						preview: true,
