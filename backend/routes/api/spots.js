@@ -18,7 +18,10 @@ const {
 	Sequelize,
 } = require('sequelize');
 const { requireAuth } = require('../../utils/auth');
-const { validateQueryParams } = require('../../utils/validation');
+const {
+	validateQueryParams,
+	handleValidationErrors,
+} = require('../../utils/validation');
 
 // GET all spots
 router.get('/', validateQueryParams, async (req, res, next) => {
@@ -305,39 +308,53 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 
 // PUT edit a spot
 
-router.put('/:spotId', requireAuth, async (req, res, next) => {
-	const { user } = req;
-	const { address, city, state, country, lat, lng, name, description, price } =
-		req.body;
-	const spot = await Spot.findByPk(req.params.spotId);
-	if (!spot) {
-		const err = new Error(`Spot couldn't be found`);
-		err.status = 404;
-		return next(err);
-	}
-	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden');
-		err.status = 403;
-		return next(err);
-	}
+router.put(
+	'/:spotId',
+	requireAuth,
+	handleValidationErrors,
+	async (req, res, next) => {
+		const { user } = req;
+		const {
+			address,
+			city,
+			state,
+			country,
+			lat,
+			lng,
+			name,
+			description,
+			price,
+		} = req.body;
+		const spot = await Spot.findByPk(req.params.spotId);
+		if (!spot) {
+			const err = new Error(`Spot couldn't be found`);
+			err.status = 404;
+			return next(err);
+		}
+		if (spot.ownerId != user.id) {
+			const err = new Error('Forbidden');
+			err.status = 403;
+			return next(err);
+		}
 
-	try {
-		await spot.update({
-			address: address,
-			city: city,
-			state: state,
-			country: country,
-			lat: lat,
-			lng: lng,
-			name: name,
-			description: description,
-			price: price,
-		});
-		res.status(200).json(spot);
-	} catch (error) {
-		next(error);
+		try {
+			await spot.update({
+				address: address ?? undefined,
+				city: city ?? undefined,
+				state: state ?? undefined,
+				country: country ?? defined,
+				lat: lat ?? undefined,
+				lng: lng ?? undefined,
+				name: name ?? undefined,
+				description: description ?? undefined,
+				price: price ?? undefined,
+			});
+			res.status(200).json(spot);
+		} catch (error) {
+			next(error);
+		}
 	}
-});
+);
 
 // DELETE a spot
 
