@@ -8,28 +8,31 @@ if (process.env.NODE_ENV === 'production') {
 
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await SpotImage.bulkCreate([
-			{
-				spotId: 1,
-				url: 'https://example.com/spot1_image1.jpg',
-				preview: true,
-			},
-			{
-				spotId: 1,
-				url: 'https://example.com/spot1_image2.jpg',
-				preview: false,
-			},
-			{
-				spotId: 2,
-				url: 'https://example.com/spot2_image1.jpg',
-				preview: true,
-			},
-			{
-				spotId: 3,
-				url: 'https://example.com/spot3_image1.jpg',
-				preview: true,
-			},
-		]);
+		await SpotImage.bulkCreate(
+			[
+				{
+					spotId: 1,
+					url: 'https://example.com/spot1_image1.jpg',
+					preview: true,
+				},
+				{
+					spotId: 1,
+					url: 'https://example.com/spot1_image2.jpg',
+					preview: false,
+				},
+				{
+					spotId: 2,
+					url: 'https://example.com/spot2_image1.jpg',
+					preview: true,
+				},
+				{
+					spotId: 3,
+					url: 'https://example.com/spot3_image1.jpg',
+					preview: true,
+				},
+			],
+			options
+		);
 	},
 
 	async down(queryInterface, Sequelize) {

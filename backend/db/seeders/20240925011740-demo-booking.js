@@ -7,14 +7,17 @@ if (process.env.NODE_ENV === 'production') {
 }
 module.exports = {
 	async up(queryInterface, Sequelize) {
-		await Booking.bulkCreate([
-			{
-				spotId: 1,
-				userId: 2, // User with id 2 made the booking
-				startDate: '2021-11-19',
-				endDate: '2021-11-20',
-			},
-		]);
+		await Booking.bulkCreate(
+			[
+				{
+					spotId: 1,
+					userId: 2, // User with id 2 made the booking
+					startDate: '2021-11-19',
+					endDate: '2021-11-20',
+				},
+			],
+			options
+		);
 	},
 
 	async down(queryInterface, Sequelize) {

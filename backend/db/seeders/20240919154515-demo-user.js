@@ -34,7 +34,8 @@ module.exports = {
 					lastName: 'Nabers',
 				},
 			],
-			{ validate: true }
+			{ validate: true },
+			options
 		);
 	},
 
