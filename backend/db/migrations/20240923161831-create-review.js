@@ -30,7 +30,7 @@ module.exports = {
 					allowNull: false,
 					references: {
 						// model: { tableName: 'Users', schema: process.env.SCHEMA },
-						model: 'Spots',
+						model: 'Users',
 						key: 'id',
 					},
 					onDelete: 'CASCADE',
@@ -65,13 +65,13 @@ module.exports = {
 	},
 	async down(queryInterface, Sequelize) {
 		options.tableName = 'Reviews';
-		await Promise.all([
-			// queryInterface.removeConstraint('Reviews', 'unique_user_spot'),
-			queryInterface.removeConstraint(
-				'ReviewImages',
-				'ReviewImages_reviewId_fkey'
-			),
-		]);
+		// await Promise.all([
+		// 	// queryInterface.removeConstraint('Reviews', 'unique_user_spot'),
+		// 	queryInterface.removeConstraint(
+		// 		'ReviewImages',
+		// 		'ReviewImages_reviewId_fkey'
+		// 	),
+		// ]);
 		await queryInterface.dropTable(options);
 	},
 };
