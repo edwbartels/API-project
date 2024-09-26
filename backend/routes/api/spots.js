@@ -138,8 +138,8 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		],
 		attributes: {
 			include: [
-				[fn('AVG', col('Reviews.stars')), 'avgRating'],
-				[fn('GROUP_CONCAT', col('SpotImage.url')), 'previewImage'],
+				// [fn('AVG', col('Reviews.stars')), 'avgRating'],
+				// [fn('GROUP_CONCAT', col('SpotImage.url')), 'previewImage'],
 			],
 		},
 		group: ['Spot.id'],
@@ -191,8 +191,8 @@ router.get('/:spotId', async (req, res, next) => {
 		],
 		attributes: {
 			include: [
-				[fn('COUNT', col('Reviews.id')), 'numReviews'],
-				[fn('AVG', col('Reviews.stars')), 'avgRating'],
+				// [fn('COUNT', col('Reviews.id')), 'numReviews'],
+				// [fn('AVG', col('Reviews.stars')), 'avgRating'],
 				// fn('DISTINCT',
 			],
 		},
