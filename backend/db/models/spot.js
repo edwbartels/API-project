@@ -121,7 +121,7 @@ module.exports = (sequelize, DataTypes) => {
 				unique: true,
 				validate: {
 					len: {
-						args: [0, 50],
+						args: [1, 50],
 						msg: `Name must be less than 50 characters`,
 					},
 					// isString(value) {

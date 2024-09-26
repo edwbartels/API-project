@@ -344,11 +344,11 @@ router.put(
 				city: city || '',
 				state: state || '',
 				country: country || '',
-				lat: lat || '',
-				lng: lng || '',
+				lat: lat || 200,
+				lng: lng || 200,
 				name: name || '',
 				description: description || '',
-				price: price || '',
+				price: price || -1,
 			});
 			res.status(200).json(spot);
 		} catch (error) {
