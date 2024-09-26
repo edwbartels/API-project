@@ -32,11 +32,11 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `Street address is required`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('Street address must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('Street address must be a string');
+					// 	}
+					// },
 				},
 			},
 			city: {
@@ -46,11 +46,11 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `City is required`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('City must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('City must be a string');
+					// 	}
+					// },
 				},
 			},
 			state: {
@@ -60,11 +60,11 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `State is required`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('State must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('State must be a string');
+					// 	}
+					// },
 				},
 			},
 			country: {
@@ -74,20 +74,20 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `Country is required`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('Country must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('Country must be a string');
+					// 	}
+					// },
 				},
 			},
 			lat: {
 				type: DataTypes.DECIMAL,
 				allowNull: false,
 				validate: {
-					isNumeric: {
-						msg: 'Latitude must be a number',
-					},
+					// isNumeric: {
+					// 	msg: 'Latitude must be a number',
+					// },
 					max: {
 						args: [90],
 						msg: `Latitude must be within -90 and 90`,
@@ -102,9 +102,9 @@ module.exports = (sequelize, DataTypes) => {
 				type: DataTypes.DECIMAL,
 				allowNull: false,
 				validate: {
-					isNumeric: {
-						msg: 'Longitude must be a number',
-					},
+					// isNumeric: {
+					// 	msg: 'Longitude must be a number',
+					// },
 					max: {
 						args: [180],
 						msg: `Longitude must be within -180 and 180`,
@@ -124,11 +124,11 @@ module.exports = (sequelize, DataTypes) => {
 						args: [0, 50],
 						msg: `Name must be less than 50 characters`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('Name must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('Name must be a string');
+					// 	}
+					// },
 				},
 			},
 			description: {
@@ -138,20 +138,20 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `Description is required`,
 					},
-					isString(value) {
-						if (typeof value !== 'string') {
-							throw new Error('Description must be a string');
-						}
-					},
+					// isString(value) {
+					// 	if (typeof value !== 'string') {
+					// 		throw new Error('Description must be a string');
+					// 	}
+					// },
 				},
 			},
 			price: {
 				type: DataTypes.DECIMAL,
 				allowNull: false,
 				validate: {
-					isNumeric: {
-						msg: 'Price must be a number',
-					},
+					// isNumeric: {
+					// 	msg: 'Price must be a number',
+					// },
 					min: {
 						args: [0.01],
 						msg: `Price per day must be a positive number`,

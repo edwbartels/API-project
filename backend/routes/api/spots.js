@@ -339,15 +339,15 @@ router.put(
 
 		try {
 			await spot.update({
-				address: address ?? undefined,
-				city: city ?? undefined,
-				state: state ?? undefined,
-				country: country ?? undefined,
-				lat: lat ?? undefined,
-				lng: lng ?? undefined,
-				name: name ?? undefined,
-				description: description ?? undefined,
-				price: price ?? undefined,
+				address: address,
+				city: city,
+				state: state,
+				country: country,
+				lat: lat,
+				lng: lng,
+				name: name,
+				description: description,
+				price: price,
 			});
 			res.status(200).json(spot);
 		} catch (error) {
