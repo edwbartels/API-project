@@ -149,8 +149,6 @@ router.get('/current', requireAuth, async (req, res, next) => {
 			},
 		],
 		group: ['Spot.id'],
-		limit: limit,
-		offset: offset,
 	});
 	// include: [
 	// 	{
@@ -250,7 +248,7 @@ router.get('/:spotId', async (req, res, next) => {
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 		],
-		group: ['SpotImages.id'],
+		group: ['Spot.id'],
 	});
 
 	if (!spot) {
