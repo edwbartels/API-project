@@ -89,7 +89,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			lng: parseFloat(spot.lng),
 			name: spot.name,
 			description: spot.description,
-			price: spot.price,
+			price: parseFloat(spot.price),
 			createdAt: spot.createdAt,
 			updatedAt: spot.updatedAt,
 			avgRating: spot.dataValues.avgRating
@@ -323,15 +323,15 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 
 	try {
 		await spot.update({
-			address: address ?? undefined,
-			city: city ?? undefined,
-			state: state ?? undefined,
-			country: country ?? undefined,
-			lat: lat ?? undefined,
-			lng: lng ?? undefined,
-			name: name ?? undefined,
-			description: description ?? undefined,
-			price: price ?? undefined,
+			address: address,
+			city: city,
+			state: state,
+			country: country,
+			lat: lat,
+			lng: lng,
+			name: name,
+			description: description,
+			price: price,
 		});
 		res.status(200).json(spot);
 	} catch (error) {
@@ -395,10 +395,20 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const { review, stars } = req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
-
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`);
 		err.status = 404;
+		return next(err);
+	}
+	const conflict = await Review.findOne({
+		where: {
+			spotId: req.params.spotId,
+			userId: user.id,
+		},
+	});
+	if (conflict) {
+		const err = new Error('User already has a review for this spot');
+		err.status = 500;
 		return next(err);
 	}
 	try {
@@ -410,11 +420,6 @@ router.post('/:spotId/reviews', requireAuth, async (req, res, next) => {
 		});
 		res.status(201).json(newReview);
 	} catch (error) {
-		if (error instanceof UniqueConstraintError) {
-			error.status = 500;
-			error.message = `User already has a review for this spot`;
-			return next(error);
-		}
 		next(error);
 	}
 });
