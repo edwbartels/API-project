@@ -325,6 +325,7 @@ router.put(
 			description,
 			price,
 		} = req.body;
+
 		const spot = await Spot.findByPk(req.params.spotId);
 		if (!spot) {
 			const err = new Error(`Spot couldn't be found`);
@@ -339,15 +340,15 @@ router.put(
 
 		try {
 			await spot.update({
-				address: address,
-				city: city,
-				state: state,
-				country: country,
-				lat: lat,
-				lng: lng,
-				name: name,
-				description: description,
-				price: price,
+				address: address || '',
+				city: city || '',
+				state: state || '',
+				country: country || '',
+				lat: lat || '',
+				lng: lng || '',
+				name: name || '',
+				description: description || '',
+				price: price || '',
 			});
 			res.status(200).json(spot);
 		} catch (error) {
