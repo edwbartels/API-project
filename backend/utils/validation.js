@@ -21,6 +21,12 @@ const handleValidationErrors = (req, _res, next) => {
 };
 
 const validateQueryParams = (req, res, next) => {
+	const errors = {};
+
+	if (isNaN(parseInt(req.query.page)))
+		errors.page = 'Page must be greater than or equal to 1';
+	if (isNaN(parseInt(req.query.size)))
+		errors.size = 'Size must be between 1 and 20';
 	const defaults = {
 		page: 1,
 		size: 20,
@@ -42,7 +48,6 @@ const validateQueryParams = (req, res, next) => {
 				? parseFloat(req.query[key])
 				: defaultValue;
 	}
-	const errors = {};
 	if (queryParams.page < 1) {
 		errors.page = 'Page must be greater than or equal to 1';
 	}
