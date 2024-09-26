@@ -55,15 +55,11 @@ module.exports = {
 			options
 		);
 
-		await queryInterface.addConstraint(
-			'Reviews',
-			{
-				fields: ['userId', 'spotId'],
-				type: 'unique',
-				name: 'unique_user_spot',
-			},
-			options
-		);
+		await queryInterface.addConstraint('Reviews', {
+			fields: ['userId', 'spotId'],
+			type: 'unique',
+			name: 'unique_user_spot',
+		});
 	},
 	async down(queryInterface, Sequelize) {
 		options.tableName = 'Reviews';
