@@ -83,10 +83,16 @@ app.use((err, _req, res, _next) => {
 	res.status(err.status || 500);
 	console.error(err);
 	res.json({
-		title: isProduction ? null : err.title || 'Server Error',
 		message: err.message,
-		errors: err.errors,
-		stack: isProduction ? null : err.stack,
+		...(!isProduction && {
+			title: err.title || 'Server Error',
+			errors: err.errors,
+			stack: err.stack,
+		}),
+		// title: isProduction ? null : err.title || 'Server Error',
+		// message: err.message,
+		// errors: err.errors,
+		// stack: isProduction ? null : err.stack,
 	});
 });
 
