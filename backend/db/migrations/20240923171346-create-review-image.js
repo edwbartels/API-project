@@ -19,7 +19,8 @@ module.exports = {
 					type: Sequelize.INTEGER,
 					allowNull: false,
 					references: {
-						model: { tableName: 'Reviews', schema: process.env.SCHEMA },
+						// model: { tableName: 'Reviews', schema: process.env.SCHEMA },
+						model: 'Reviews',
 						key: 'id',
 					},
 					onDelete: 'CASCADE',
