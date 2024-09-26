@@ -342,7 +342,7 @@ router.put(
 				address: address ?? undefined,
 				city: city ?? undefined,
 				state: state ?? undefined,
-				country: country ?? defined,
+				country: country ?? undefined,
 				lat: lat ?? undefined,
 				lng: lng ?? undefined,
 				name: name ?? undefined,
