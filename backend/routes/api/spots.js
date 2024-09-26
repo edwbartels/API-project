@@ -148,7 +148,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 				attributes: ['url'],
 			},
 		],
-		group: ['SpotImages.id'],
+		group: ['Spot.id', 'SpotImages.id'],
 	});
 
 	const formattedSpots = spots.map((spot) => {
@@ -214,7 +214,7 @@ router.get('/:spotId', async (req, res, next) => {
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 		],
-		group: ['SpotImages.id'],
+		group: ['Spot.id', 'SpotImages.id'],
 	});
 
 	if (!spot) {
