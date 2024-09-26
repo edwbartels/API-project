@@ -163,12 +163,12 @@ router.delete('/:reviewId', requireAuth, async (req, res, next) => {
 	if (!review) {
 		const err = new Error(`Review couldn't be found`);
 		err.status = 404;
-		next(err);
+		return next(err);
 	}
-	if (review.userId != user.id) {
+	if (review.userId !== user.id) {
 		const err = new Error('Forbidden');
 		err.status = 403;
-		next(err);
+		return next(err);
 	}
 	await review.destroy();
 	res.status(200).json({

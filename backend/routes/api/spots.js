@@ -62,12 +62,6 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			],
 		},
 		include: [
-			// {
-			// 	model: Review,
-			// 	as: 'Reviews',
-			// 	attributes: [],
-			// 	required: false,
-			// },
 			{
 				model: SpotImage,
 				required: false,
@@ -91,7 +85,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			city: spot.city,
 			state: spot.state,
 			country: spot.country,
-			lat: spot.lat,
+			lat: parseFloat(spot.lat),
 			lng: spot.lng,
 			name: spot.name,
 			description: spot.description,
@@ -219,8 +213,8 @@ router.get('/:spotId', async (req, res, next) => {
 
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`);
-		err.status(404);
-		next(err);
+		err.status = 404;
+		return next(err);
 	}
 
 	const formattedSpot = {
@@ -238,7 +232,7 @@ router.get('/:spotId', async (req, res, next) => {
 		createdAt: spot.createdAt,
 		updatedAt: spot.updatedAt,
 		numReviews: spot.dataValues.numReviews || 0,
-		avgRating: spot.dataValues.avgRating
+		avgStarRating: spot.dataValues.avgRating
 			? parseFloat(spot.dataValues.avgRating)
 			: null,
 		SpotImages: spot.SpotImages,
@@ -316,14 +310,14 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 	const { address, city, state, country, lat, lng, name, description, price } =
 		req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
-	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden');
-		err.status = 403;
-		return next(err);
-	}
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`);
 		err.status = 404;
+		return next(err);
+	}
+	if (spot.ownerId != user.id) {
+		const err = new Error('Forbidden');
+		err.status = 403;
 		return next(err);
 	}
 
@@ -350,15 +344,15 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 router.delete('/:spotId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const spot = await Spot.findByPk(req.params.spotId);
-	if (spot.ownerId != user.id) {
-		const err = new Error('Forbidden');
-		err.status = 403;
-		next(err);
-	}
 	if (!spot) {
 		const err = new Error(`Spot couldn't be found`);
 		err.status = 404;
-		next(err);
+		return next(err);
+	}
+	if (spot.ownerId != user.id) {
+		const err = new Error('Forbidden');
+		err.status = 403;
+		return next(err);
 	}
 
 	await spot.destroy();
