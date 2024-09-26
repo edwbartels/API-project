@@ -62,7 +62,7 @@ const validateQueryParams = (req, res, next) => {
 		errors.maxPrice = 'Maximum price must be greater than or equal to 0';
 
 	if (Object.keys(errors).length !== 0) {
-		const err = new Error('Bad request');
+		const err = new Error('Bad Request');
 		err.errors = errors;
 		err.status = 400;
 		next(err);
