@@ -55,7 +55,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 					Sequelize.literal(`(
 					SELECT AVG("Reviews".stars)
 					FROM "Reviews"
-					WHERE "Reviews"."spotId" = "Spot"."id"
+					WHERE "Reviews"."spotId" = "Spot".id"
 				)`),
 					'avgRating',
 				],
@@ -97,7 +97,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			price: spot.price,
 			createdAt: spot.createdAt,
 			updatedAt: spot.updatedAt,
-			avgRating: spot.dataValues.avgRating || null,
+			avgRating: spot.avgRating || null,
 			previewImage:
 				spot.SpotImages && spot.SpotImages.length > 0
 					? spot.SpotImages[0].url
