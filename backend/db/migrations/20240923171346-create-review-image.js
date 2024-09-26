@@ -20,6 +20,7 @@ module.exports = {
 					model: { tableName: 'Reviews', schema: process.env.SCHEMA },
 					key: 'id',
 				},
+				onDelete: 'CASCADE',
 			},
 			url: {
 				type: Sequelize.STRING,
