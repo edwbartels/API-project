@@ -79,7 +79,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 			ReviewImages: review.ReviewImages || review.ReviewImage,
 		};
 	});
-	res.status(200).json({ Reviews: formattedReviews });
+	return res.status(200).json({ Reviews: formattedReviews });
 });
 
 // POST add image to review by reviewId

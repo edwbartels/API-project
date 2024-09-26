@@ -105,7 +105,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		};
 	});
 
-	res.status(200).json({
+	return res.status(200).json({
 		Spots: formattedSpots,
 		page: queryParams.page,
 		size: queryParams.size,
