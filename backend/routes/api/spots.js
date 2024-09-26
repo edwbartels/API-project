@@ -80,6 +80,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		limit: limit,
 		offset: offset,
 	});
+	console.log(spots);
 
 	const formattedSpots = spots.map((spot) => {
 		return {
@@ -144,7 +145,6 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		},
 		group: ['Spot.id'],
 	});
-	console.log(spots);
 
 	const formattedSpots = spots.map((spot) => {
 		return {
