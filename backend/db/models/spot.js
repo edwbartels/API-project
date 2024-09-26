@@ -32,6 +32,11 @@ module.exports = (sequelize, DataTypes) => {
 					notEmpty: {
 						msg: `Street address is required`,
 					},
+					isString(value) {
+						if (typeof value !== 'string') {
+							throw new Error('Street address must be a string');
+						}
+					},
 				},
 			},
 			city: {
