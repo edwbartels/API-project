@@ -16,7 +16,10 @@ module.exports = {
 			ownerId: {
 				allowNull: false,
 				type: Sequelize.INTEGER,
-				references: { model: { tableName: 'Users' }, key: 'id' },
+				references: {
+					model: { tableName: 'Users', schema: process.env.SCHEMA },
+					key: 'id',
+				},
 				onDelete: 'CASCADE',
 			},
 			address: {
