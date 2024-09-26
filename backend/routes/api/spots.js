@@ -102,7 +102,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		};
 	});
 
-	res.json({
+	return res.status(200).json({
 		Spots: formattedSpots,
 		page: queryParams.page,
 		size: queryParams.size,
@@ -277,10 +277,10 @@ router.post('/:spotId/images', requireAuth, async (req, res, next) => {
 		};
 		return res.status(201).json(formattedImg);
 	} catch (error) {
-		if (error.name === 'SequelizeForeignKeyConstraintError') {
-			error.status = 404;
-			error.message = `Spot couldn't be found`;
-		}
+		// if (error.name === 'SequelizeForeignKeyConstraintError') {
+		// 	error.status = 404;
+		// 	error.message = `Spot couldn't be found`;
+		// }
 		next(error);
 	}
 });
@@ -292,17 +292,17 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 	const { address, city, state, country, lat, lng, name, description, price } =
 		req.body;
 	const spot = await Spot.findByPk(req.params.spotId);
-
-	if (!spot) {
-		const err = new Error(`Spot couldn't be found`);
-		err.status = 404;
-		return next(err);
-	}
 	if (spot.ownerId != user.id) {
 		const err = new Error('Forbidden');
 		err.status = 403;
 		return next(err);
 	}
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		return next(err);
+	}
+
 	try {
 		await spot.update({
 			address: address ?? undefined,
@@ -326,17 +326,17 @@ router.put('/:spotId', requireAuth, async (req, res, next) => {
 router.delete('/:spotId', requireAuth, async (req, res, next) => {
 	const { user } = req;
 	const spot = await Spot.findByPk(req.params.spotId);
-
-	if (!spot) {
-		const err = new Error(`Spot couldn't be found`);
-		err.status = 404;
-		next(err);
-	}
 	if (spot.ownerId != user.id) {
 		const err = new Error('Forbidden');
 		err.status = 403;
 		next(err);
 	}
+	if (!spot) {
+		const err = new Error(`Spot couldn't be found`);
+		err.status = 404;
+		next(err);
+	}
+
 	await spot.destroy();
 	res.status(200).json({
 		message: 'Successfully deleted',
