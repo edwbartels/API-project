@@ -1,5 +1,9 @@
 'use strict';
 const { Model } = require('sequelize');
+let options = {};
+if (process.env.NODE_ENV === 'production') {
+	options.schema = process.env.SCHEMA; // define your schema in options object
+}
 module.exports = (sequelize, DataTypes) => {
 	class Booking extends Model {
 		/**
@@ -62,6 +66,7 @@ module.exports = (sequelize, DataTypes) => {
 		{
 			sequelize,
 			modelName: 'Booking',
+			...options,
 		}
 	);
 	return Booking;
