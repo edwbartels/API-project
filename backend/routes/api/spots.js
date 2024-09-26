@@ -21,7 +21,7 @@ const { requireAuth } = require('../../utils/auth');
 const { validateQueryParams } = require('../../utils/validation');
 
 // GET all spots
-router.get('/', async (req, res, next) => {
+router.get('/', validateQueryParams, async (req, res, next) => {
 	const queryParams = req.queryParams;
 	const limit = queryParams.size;
 	const offset = (queryParams.page - 1) * queryParams.size;

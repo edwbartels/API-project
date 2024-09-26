@@ -103,6 +103,9 @@ app.use((err, _req, res, _next) => {
 			}),
 		});
 	}
+	res.json({
+		message: err.message,
+	});
 });
 
 module.exports = app;

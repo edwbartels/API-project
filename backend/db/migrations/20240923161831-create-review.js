@@ -15,11 +15,12 @@ module.exports = {
 					primaryKey: true,
 					type: Sequelize.INTEGER,
 				},
+				// model: { tableName: 'Spots', schema: process.env.SCHEMA },
+
 				spotId: {
 					type: Sequelize.INTEGER,
 					allowNull: false,
 					references: {
-						// model: { tableName: 'Spots', schema: process.env.SCHEMA },
 						model: 'Spots',
 						key: 'id',
 					},
