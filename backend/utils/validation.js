@@ -34,32 +34,52 @@ const validateQueryParams = (req, res, next) => {
 	const queryParams = {};
 	const errors = {};
 
-	for (const [key, defaultValue] of Object.entries(defaults)) {
-		if (key === 'page' || key === 'size') {
+	for (const key of Object.keys(req.query)) {
+		if (
+			key === 'page' ||
+			key === 'size' ||
+			key === 'maxLat' ||
+			key === 'minLat' ||
+			key === 'maxLng' ||
+			key === 'minLng' ||
+			key === 'minPrice' ||
+			key === 'maxPrice'
+		) {
 			queryParams[key] = !isNaN(parseInt(req.query[key]))
 				? parseInt(req.query[key])
-				: defaultValue;
-		} else
-			queryParams[key] = !isNaN(parseFloat(req.query[key]))
-				? parseFloat(req.query[key])
-				: defaultValue;
+				: 'invalid';
+		}
 	}
-	if (queryParams.page < 1) {
+	// for (const [key, defaultValue] of Object.entries(defaults)) {
+	// 	if (key === 'page' || key === 'size') {
+	// 		queryParams[key] = !isNaN(parseInt(req.query[key]))
+	// 			? parseInt(req.query[key])
+	// 			: defaultValue;
+	// 	} else
+	// 		queryParams[key] = !isNaN(parseFloat(req.query[key]))
+	// 			? parseFloat(req.query[key])
+	// 			: defaultValue;
+	// }
+	if (queryParams.page < 1 || queryParams.page === 'invalid') {
 		errors.page = 'Page must be greater than or equal to 1';
 	}
-	if (queryParams.size < 1 || queryParams.size > 20)
+	if (
+		queryParams.size < 1 ||
+		queryParams.size > 20 ||
+		queryParams.size === 'invalid'
+	)
 		errors.size = 'Size must be between 1 and 20';
-	if (queryParams.maxLat && queryParams.maxLat < -90)
+	if (queryParams.maxLat === 'invalid' || queryParams.maxLat < -90)
 		errors.maxLat = 'Maximum latitude is invalid';
-	if (queryParams.minLat && queryParams.minLat > 90)
+	if (queryParams.minLat === 'invalid' || queryParams.minLat > 90)
 		errors.minLat = 'Minimum latitude is invalid';
-	if (queryParams.maxLng && queryParams.maxLng < -180)
+	if (queryParams.maxLng === 'invalid' || queryParams.maxLng < -180)
 		errors.maxLng = 'Maximum longitude is invalid';
-	if (queryParams.minLng && queryParams.minLng > 180)
+	if (queryParams.minLng === 'invalid' || queryParams.minLng > 180)
 		errors.minLng = 'Minimum longitude is invalid';
-	if (queryParams.minPrice && queryParams.minPrice <= 0)
+	if (queryParams.minPrice === ' invalid' || queryParams.minPrice <= 0)
 		errors.minPrice = 'Minimum price must be greater than or equal to 0';
-	if (queryParams.maxPrice && queryParams.maxPrice <= 0)
+	if (queryParams.maxPrice === 'invalid' || queryParams.maxPrice <= 0)
 		errors.maxPrice = 'Maximum price must be greater than or equal to 0';
 
 	if (Object.keys(errors).length !== 0) {
