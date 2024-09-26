@@ -79,11 +79,11 @@ module.exports = {
 	},
 	async down(queryInterface, Sequelize) {
 		options.tableName = 'Spots';
-		await Promise.all([
-			queryInterface.removeConstraint('Reviews', 'Reviews_spotId_fkey'),
-			queryInterface.removeConstraint('SpotImages', 'SpotImages_spotId_fkey'),
-			queryInterface.removeConstraint('Bookings', 'Bookings_spotIdId_fkey'),
-		]);
+		// await Promise.all([
+		// 	queryInterface.removeConstraint('Reviews', 'Reviews_spotId_fkey'),
+		// 	queryInterface.removeConstraint('SpotImages', 'SpotImages_spotId_fkey'),
+		// 	queryInterface.removeConstraint('Bookings', 'Bookings_spotIdId_fkey'),
+		// ]);
 		await queryInterface.dropTable(options);
 	},
 };

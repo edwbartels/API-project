@@ -98,7 +98,9 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			price: spot.price,
 			createdAt: spot.createdAt,
 			updatedAt: spot.updatedAt,
-			avgRating: spot.dataValues.avgRating || null,
+			avgRating: spot.dataValues.avgRating
+				? parseFloat(spot.dataValues.avgRating)
+				: null,
 			previewImage:
 				spot.SpotImages && spot.SpotImages.length > 0
 					? spot.SpotImages[0].url
@@ -124,11 +126,19 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		where: {
 			ownerId: user.id,
 		},
+		attributes: {
+			include: [
+				[
+					Sequelize.literal(`(
+					SELECT AVG("air_bnb_schema"."Reviews".stars)
+					FROM "air_bnb_schema"."Reviews"
+					WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
+				)`),
+					'avgRating',
+				],
+			],
+		},
 		include: [
-			{
-				model: Review,
-				attributes: [],
-			},
 			{
 				model: SpotImage,
 				required: false,
@@ -138,14 +148,46 @@ router.get('/current', requireAuth, async (req, res, next) => {
 				attributes: ['url'],
 			},
 		],
-		attributes: {
-			include: [
-				// [fn('AVG', col('Reviews.stars')), 'avgRating'],
-				// [fn('GROUP_CONCAT', col('SpotImage.url')), 'previewImage'],
-			],
-		},
 		group: ['Spot.id'],
+		limit: limit,
+		offset: offset,
 	});
+	// include: [
+	// 	{
+	// 		model: Review,
+	// 		attributes: [],
+	// 	},
+	// 	{
+	// 		model: SpotImage,
+	// 		required: false,
+	// 		where: {
+	// 			preview: true,
+	// 		},
+	// 		attributes: ['url'],
+	// 	},
+	// ],
+	// attributes: {
+	// 	include: [
+	// 		[
+	// 			Sequelize.literal(`(
+	// 			SELECT AVG("air_bnb_schema"."Reviews".stars)
+	// 			FROM "air_bnb_schema"."Reviews"
+	// 			WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
+	// 		)`),
+	// 			'avgRating',
+	// 		],
+	// 		[
+	// 			Sequelize.literal(`(
+	// 			SELECT *
+	// 			FROM "air_bnb_schema"."SpotImages"
+	// 			WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
+	// 		)`),
+	// 			'avgRating',
+	// 		],
+	// 		// [fn('GROUP_CONCAT', col('SpotImage.url')), 'previewImage'],
+	// 	],
+	// },
+	// group: ['Spot.id'],
 
 	const formattedSpots = spots.map((spot) => {
 		return {
@@ -163,9 +205,10 @@ router.get('/current', requireAuth, async (req, res, next) => {
 			createdAt: spot.createdAt,
 			updatedAt: spot.updatedAt,
 			avgRating: spot.dataValues.avgRating || null,
-			previewImage: spot.dataValues.previewImage
-				? spot.dataValues.previewImage.split(',')[0]
-				: null,
+			previewImage:
+				spot.SpotImages && spot.SpotImages.length > 0
+					? spot.SpotImages[0].url
+					: null,
 		};
 	});
 
@@ -176,11 +219,27 @@ router.get('/current', requireAuth, async (req, res, next) => {
 
 router.get('/:spotId', async (req, res, next) => {
 	const spot = await Spot.findByPk(req.params.spotId, {
+		attributes: {
+			include: [
+				[
+					Sequelize.literal(`(
+				SELECT AVG("air_bnb_schema"."Reviews".stars)
+				FROM "air_bnb_schema"."Reviews"
+				WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
+			)`),
+					'avgRating',
+				],
+				[
+					Sequelize.literal(`(
+				SELECT COUNT("air_bnb_schema"."Reviews".stars)
+				FROM "air_bnb_schema"."Reviews"
+				WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
+			)`),
+					'numReviews',
+				],
+			],
+		},
 		include: [
-			{
-				model: Review,
-				attributes: [],
-			},
 			{
 				model: SpotImage,
 				attributes: ['id', 'url', 'preview'],
@@ -191,13 +250,6 @@ router.get('/:spotId', async (req, res, next) => {
 				attributes: ['id', 'firstName', 'lastName'],
 			},
 		],
-		attributes: {
-			include: [
-				// [fn('COUNT', col('Reviews.id')), 'numReviews'],
-				// [fn('AVG', col('Reviews.stars')), 'avgRating'],
-				// fn('DISTINCT',
-			],
-		},
 		group: ['SpotImages.id'],
 	});
 

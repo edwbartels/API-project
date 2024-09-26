@@ -45,13 +45,13 @@ module.exports = {
 	},
 	async down(queryInterface, Sequelize) {
 		options.tableName = 'ReviewImages';
-		await Promise.all([
-			// queryInterface.removeConstraint('Reviews', 'unique_user_spot'),
-			queryInterface.removeConstraint(
-				'ReviewImages',
-				'ReviewImages_reviewId_fkey'
-			),
-		]);
+		// await Promise.all([
+		// 	// queryInterface.removeConstraint('Reviews', 'unique_user_spot'),
+		// 	queryInterface.removeConstraint(
+		// 		'ReviewImages',
+		// 		'ReviewImages_reviewId_fkey'
+		// 	),
+		// ]);
 		await queryInterface.dropTable(options);
 	},
 };
