@@ -53,9 +53,9 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			include: [
 				[
 					Sequelize.literal(`(
-					SELECT AVG("Reviews".stars)
-					FROM "Reviews"
-					WHERE "Reviews"."spotId" = "Spot"."id"
+					SELECT AVG("air_bnb_schema"."Reviews".stars)
+					FROM "air_bnb_schema"."Reviews"
+					WHERE "air_bnb_schema"."Reviews"."spotId" = "Spot"."id"
 				)`),
 					'avgRating',
 				],
