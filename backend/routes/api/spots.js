@@ -46,72 +46,72 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		where.price = { ...where.price, [Op.lte]: queryParams.maxPrice };
 	}
 	console.log(where);
-	try {
-		const spots = await Spot.findAll({
-			// where: where,
-			// attributes: {
-			// 	include: [
-			// 		[
-			// 			Sequelize.literal(`(
-			// 		SELECT AVG(Reviews.stars)
-			// 		FROM Reviews
-			// 		WHERE Reviews.spotId = Spot.id
-			// 	)`),
-			// 			'avgRating',
-			// 		],
-			// 	],
-			// },
+	// try {
+	const spots = await Spot.findAll({
+		// where: where,
+		attributes: {
 			include: [
-				{
-					model: Review,
-					attributes: [],
-					required: false,
-				},
-				{
-					model: SpotImage,
-					required: false,
-					where: {
-						preview: true,
-					},
-					attributes: ['url'],
-				},
+				[
+					Sequelize.literal(`(
+					SELECT AVG("Reviews".stars)
+					FROM "Reviews"
+					WHERE "Reviews"."spotId" = "Spot"."id"
+				)`),
+					'avgRating',
+				],
 			],
-			group: ['Spot.id'],
-			limit: limit,
-			offset: offset,
-		});
+		},
+		include: [
+			{
+				model: Review,
+				attributes: [],
+				required: false,
+			},
+			{
+				model: SpotImage,
+				required: false,
+				where: {
+					preview: true,
+				},
+				attributes: ['url'],
+			},
+		],
+		group: ['Spot.id'],
+		limit: limit,
+		offset: offset,
+	});
 
-		const formattedSpots = spots.map((spot) => {
-			return {
-				id: spot.id,
-				ownerId: spot.ownerId,
-				address: spot.address,
-				city: spot.city,
-				state: spot.state,
-				country: spot.country,
-				lat: spot.lat,
-				lng: spot.lng,
-				name: spot.name,
-				description: spot.description,
-				price: spot.price,
-				createdAt: spot.createdAt,
-				updatedAt: spot.updatedAt,
-				avgRating: spot.dataValues.avgRating || null,
-				previewImage:
-					spot.SpotImages && spot.SpotImages.length > 0
-						? spot.SpotImages[0].url
-						: null,
-			};
-		});
+	const formattedSpots = spots.map((spot) => {
+		return {
+			id: spot.id,
+			ownerId: spot.ownerId,
+			address: spot.address,
+			city: spot.city,
+			state: spot.state,
+			country: spot.country,
+			lat: spot.lat,
+			lng: spot.lng,
+			name: spot.name,
+			description: spot.description,
+			price: spot.price,
+			createdAt: spot.createdAt,
+			updatedAt: spot.updatedAt,
+			avgRating: spot.dataValues.avgRating || null,
+			previewImage:
+				spot.SpotImages && spot.SpotImages.length > 0
+					? spot.SpotImages[0].url
+					: null,
+		};
+	});
 
-		res.status(200).json({
-			Spots: formattedSpots,
-			page: queryParams.page,
-			size: queryParams.size,
-		});
-	} catch (error) {
-		next(error);
-	}
+	res.status(200).json({
+		Spots: formattedSpots,
+		page: queryParams.page,
+		size: queryParams.size,
+	});
+	// } catch (error) {
+	// 	next(error);
+	// }
 });
 
 // GET all spots owned by current user
