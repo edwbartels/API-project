@@ -49,26 +49,26 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 	try {
 		const spots = await Spot.findAll({
 			// where: where,
-			attributes: {
-				include: [
-					[
-						Sequelize.literal(`(
-					SELECT AVG(Reviews.stars)
-					FROM Reviews
-					WHERE Reviews.spotId = Spot.id
-				)`),
-						'avgRating',
-					],
-				],
-			},
+			// attributes: {
+			// 	include: [
+			// 		[
+			// 			Sequelize.literal(`(
+			// 		SELECT AVG(Reviews.stars)
+			// 		FROM Reviews
+			// 		WHERE Reviews.spotId = Spot.id
+			// 	)`),
+			// 			'avgRating',
+			// 		],
+			// 	],
+			// },
 			include: [
 				{
-					model: 'Review',
+					model: Review,
 					attributes: [],
 					required: false,
 				},
 				{
-					model: 'SpotImage',
+					model: SpotImage,
 					required: false,
 					where: {
 						preview: true,
