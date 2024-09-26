@@ -144,6 +144,7 @@ router.get('/current', requireAuth, async (req, res, next) => {
 		},
 		group: ['Spot.id'],
 	});
+	console.log(spots);
 
 	const formattedSpots = spots.map((spot) => {
 		return {
