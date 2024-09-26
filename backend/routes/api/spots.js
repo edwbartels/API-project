@@ -21,7 +21,7 @@ const { requireAuth } = require('../../utils/auth');
 const { validateQueryParams } = require('../../utils/validation');
 
 // GET all spots
-router.get('/', validateQueryParams, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
 	const queryParams = req.queryParams;
 	const limit = queryParams.size;
 	const offset = (queryParams.page - 1) * queryParams.size;
@@ -104,7 +104,7 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 			};
 		});
 
-		return res.status(200).json({
+		res.status(200).json({
 			Spots: formattedSpots,
 			page: queryParams.page,
 			size: queryParams.size,
