@@ -53,7 +53,7 @@ const validateQueryParams = (req, res, next) => {
 		}
 	}
 	if (!queryParams.page) queryParams.page = defaults.page;
-	if (!queryParams.size) queryParams.size = defaults.page;
+	if (!queryParams.size) queryParams.size = defaults.size;
 	// for (const [key, defaultValue] of Object.entries(defaults)) {
 	// 	if (key === 'page' || key === 'size') {
 	// 		queryParams[key] = !isNaN(parseInt(req.query[key]))
