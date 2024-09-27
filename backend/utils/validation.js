@@ -35,11 +35,10 @@ const validateQueryParams = (req, res, next) => {
 	const errors = {};
 
 	for (const key of Object.keys(req.query)) {
-		if (key === 'page' || key === 'size') {
+		if (key === 'page' || key === 'size')
 			queryParams[key] = !isNaN(parseInt(req.query[key]))
 				? parseInt(req.query[key])
 				: 'invalid';
-		}
 		if (
 			key === 'maxLat' ||
 			key === 'minLat' ||
@@ -53,6 +52,8 @@ const validateQueryParams = (req, res, next) => {
 				: 'invalid';
 		}
 	}
+	if (!queryParams.page) queryParams.page = defaults.page;
+	if (!queryParams.size) queryParams.size = defaults.page;
 	// for (const [key, defaultValue] of Object.entries(defaults)) {
 	// 	if (key === 'page' || key === 'size') {
 	// 		queryParams[key] = !isNaN(parseInt(req.query[key]))
