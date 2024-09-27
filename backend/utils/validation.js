@@ -35,9 +35,12 @@ const validateQueryParams = (req, res, next) => {
 	const errors = {};
 
 	for (const key of Object.keys(req.query)) {
+		if (key === 'page' || key === 'size') {
+			queryParams[key] = !isNaN(parseInt(req.query[key]))
+				? parseInt(req.query[key])
+				: 'invalid';
+		}
 		if (
-			key === 'page' ||
-			key === 'size' ||
 			key === 'maxLat' ||
 			key === 'minLat' ||
 			key === 'maxLng' ||
@@ -45,8 +48,8 @@ const validateQueryParams = (req, res, next) => {
 			key === 'minPrice' ||
 			key === 'maxPrice'
 		) {
-			queryParams[key] = !isNaN(parseInt(req.query[key]))
-				? parseInt(req.query[key])
+			queryParams[key] = !isNaN(parseFloat(req.query[key]))
+				? parseFloat(req.query[key])
 				: 'invalid';
 		}
 	}
