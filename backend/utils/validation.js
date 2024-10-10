@@ -91,7 +91,6 @@ const validateQueryParams = (req, res, next) => {
 		err.message = 'Bad Request';
 		err.errors = errors;
 		err.status = 400;
-		console.log(err);
 		return next(err);
 	}
 	req.queryParams = queryParams;

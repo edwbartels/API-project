@@ -84,7 +84,6 @@ router.get('/current', requireAuth, async (req, res, next) => {
 			ReviewImages: review.ReviewImages || review.ReviewImage,
 		};
 	});
-	console.log(formattedReviews);
 	res.status(200).json({ Reviews: formattedReviews });
 });
 

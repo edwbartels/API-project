@@ -48,7 +48,6 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 	if (queryParams.maxPrice) {
 		where.price = { ...where.price, [Op.lte]: queryParams.maxPrice };
 	}
-	console.log(where);
 	// try {
 	const spots = await Spot.findAll({
 		// where: where,
@@ -78,7 +77,6 @@ router.get('/', validateQueryParams, async (req, res, next) => {
 		limit: limit,
 		offset: offset,
 	});
-	console.log(spots);
 
 	const formattedSpots = spots.map((spot) => {
 		return {
